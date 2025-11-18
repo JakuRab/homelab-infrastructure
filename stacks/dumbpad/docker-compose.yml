@@ -1,0 +1,18 @@
+services:
+  dumbpad:
+    image: ghcr.io/dumbpad/dumbpad:latest
+    container_name: dumbpad
+    restart: unless-stopped
+    volumes:
+      - /opt/dumbpad/data:/data
+    labels:
+      - "glance.name=Dumbpad"
+      - "glance.icon=sh:notepad-text"
+      - "glance.url=https://pad.rabalski.eu"
+      - "glance.description=Note-taking"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true

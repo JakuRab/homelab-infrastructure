@@ -1,0 +1,23 @@
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
+    container_name: changedetection
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Warsaw
+      - BASE_URL=https://watch.rabalski.eu
+    volumes:
+      - /opt/changedetection/data:/datastore
+    labels:
+      - "glance.name=Changedetection"
+      - "glance.icon=sh:eye"
+      - "glance.url=https://watch.rabalski.eu"
+      - "glance.description=Website Monitoring"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true

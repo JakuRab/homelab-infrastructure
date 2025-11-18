@@ -1,0 +1,43 @@
+services:
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Warsaw
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/config/www/database/database.sqlite
+      - APP_URL=https://speedtest.rabalski.eu
+      - ASSET_URL=https://speedtest.rabalski.eu
+      - APP_TIMEZONE=Europe/Warsaw
+      - ADMIN_NAME=${ADMIN_NAME:-Kuba}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SPEEDTEST_SCHEDULE=${SPEEDTEST_SCHEDULE:-0 */6 * * *}
+      - PRUNE_RESULTS_OLDER_THAN=${PRUNE_RESULTS_OLDER_THAN:-0}
+      - SPEEDTEST_SERVERS=${SPEEDTEST_SERVERS:-3671,7200,23122}
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=sync
+    volumes:
+      - /opt/speedtest-tracker/config:/config
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/api/healthcheck | grep -qi running"]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    labels:
+      - "glance.name=Speedtest"
+      - "glance.icon=sh:gauge"
+      - "glance.url=https://speedtest.rabalski.eu"
+      - "glance.description=Internet Speed Tracking"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true

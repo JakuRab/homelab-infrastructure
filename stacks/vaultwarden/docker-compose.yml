@@ -1,0 +1,28 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      - SIGNUPS_ALLOWED=${SIGNUPS_ALLOWED:-false}
+      - WEBSOCKET_ENABLED=${WEBSOCKET_ENABLED:-true}
+      - DOMAIN=https://21376942.rabalski.eu
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURITY=${SMTP_SECURITY:-starttls}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+    volumes:
+      - /opt/vaultwarden/data:/data
+    labels:
+      - "glance.name=Vaultwarden"
+      - "glance.icon=si:bitwarden"
+      - "glance.url=https://21376942.rabalski.eu"
+      - "glance.description=Password Manager"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true

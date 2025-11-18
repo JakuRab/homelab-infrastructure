@@ -1,0 +1,25 @@
+services:
+  neko:
+    image: m1k1o/neko:firefox
+    container_name: neko
+    restart: unless-stopped
+    shm_size: "2gb"
+    environment:
+      - NEKO_SCREEN=1920x1080@30
+      - NEKO_PASSWORD=${NEKO_PASSWORD}
+      - NEKO_PASSWORD_ADMIN=${NEKO_PASSWORD_ADMIN}
+      - NEKO_EPR=52000-52100
+      - NEKO_ICELITE=true
+    ports:
+      - "52000-52100:52000-52100/udp"
+    labels:
+      - "glance.name=n.eko"
+      - "glance.icon=si:firefox"
+      - "glance.url=https://kicia.rabalski.eu"
+      - "glance.description=Browser Isolation"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true

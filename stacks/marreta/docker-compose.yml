@@ -1,0 +1,16 @@
+services:
+  marreta:
+    image: ghcr.io/tiagocoutinh0/marreta:latest
+    container_name: marreta
+    restart: unless-stopped
+    labels:
+      - "glance.name=Marreta"
+      - "glance.icon=sh:hammer"
+      - "glance.url=https://ram.rabalski.eu"
+      - "glance.description=Paywall Bypass"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true

@@ -1,0 +1,22 @@
+services:
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - /opt/adguardhome/work:/opt/adguardhome/work
+      - /opt/adguardhome/conf:/opt/adguardhome/conf
+    labels:
+      - "glance.name=AdGuard Home"
+      - "glance.icon=si:adguard"
+      - "glance.url=https://sink.rabalski.eu"
+      - "glance.description=DNS & Ad Blocking"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true
