@@ -18,7 +18,8 @@ services:
     labels:
       - "glance.name=n8n"
       - "glance.icon=sh:n8n-light"
-      - "glance.url=n8n.rabalski.eu"
+      - "glance.url=https://n8n.rabalski.eu"
+      - "glance.description=Workflow Automation"
     volumes:
       - /opt/n8n/data:/home/node/.n8n
     networks:
