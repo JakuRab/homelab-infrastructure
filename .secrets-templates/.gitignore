@@ -1,0 +1,8 @@
+# Intentionally minimal - we WANT to commit .env files here
+# This is the secrets repository
+
+# But still ignore these:
+*.swp
+*.swo
+*~
+.DS_Store

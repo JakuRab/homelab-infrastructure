@@ -1,0 +1,186 @@
+{
+  # Global
+  email jakurb@rabalski.eu
+  debug
+}
+
+(gate) {
+  @blocked not remote_ip 192.168.1.0/24 192.168.0.0/24 100.64.0.0/10 127.0.0.1/8 ::1 fd7a:115c:a1e0::/48
+  respond @blocked "Forbidden" 403
+}
+
+rabalski.eu, www.rabalski.eu {
+  redir https://dom.rabalski.eu{uri} 301
+}
+
+21376942.rabalski.eu {
+  import gate
+  @admin path /admin*
+  basic_auth @admin {
+    MoonAndStar $2a$14$4d1bebef2676gfWrypHNK.8QIC2/ftLZ/2WwA0Ae8OXCHbg65YFSa
+  }
+  encode zstd gzip
+  reverse_proxy http://vaultwarden:80 {
+    transport http {
+      read_buffer  64MB
+      write_buffer 64MB
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+search.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://searxng:8080
+}
+
+cloud.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://host.docker.internal:12000 {
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  }
+}
+
+portainer.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://portainer:9000
+}
+
+aio-setup.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy https://nextcloud-aio-mastercontainer:8080 {
+    transport http {
+      tls_insecure_skip_verify
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+sink.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://adguard:80
+}
+
+kicia.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://neko:8080 {
+    transport http {
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+watch.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://changedetection:5000
+}
+
+deck.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://glance:8080
+}
+
+ram.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://marreta:80
+}
+
+pad.rabalski.eu {
+  import gate
+  encode zstd gzip
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+  }
+  reverse_proxy http://dumbpad:3000
+}
+
+speedtest.rabalski.eu {
+  import gate
+  encode zstd gzip
+  header {
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "SAMEORIGIN"
+  }
+  reverse_proxy http://speedtest-tracker:80 {
+    transport http {
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+# n8n with internal cert fallback (no DNS plugin)
+n8n.rabalski.eu {
+  import gate
+  encode zstd gzip
+  tls internal
+  reverse_proxy http://n8n:5678 {
+    transport http {
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+dom.rabalski.eu {
+  import gate
+  reverse_proxy http://homeassistant:8123 {
+    header_up X-Forwarded-Proto {scheme}
+    header_up X-Forwarded-Host  {host}
+    header_up X-Forwarded-For   {remote_host}
+    header_up X-Real-IP         {remote_host}
+  }
+  encode gzip
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Referrer-Policy "no-referrer-when-downgrade"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+  }
+}

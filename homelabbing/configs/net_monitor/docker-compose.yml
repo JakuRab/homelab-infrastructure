@@ -1,0 +1,90 @@
+networks:
+  netmon:
+    driver: bridge
+  caddy_net:
+    external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    labels:
+      glance.name: "Prometheus"
+      glance.icon: "sh:prometheus-light"
+      glance.url: "https://prometheus.rabalski.eu"
+    restart: unless-stopped
+    dns:
+      - 192.168.1.10
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    environment:
+      - TZ=${TZ:-Etc/UTC}
+    ports:
+      - "9090:9090"
+    volumes:
+      - "${CONFIG_ROOT:-/srv/configs/net_monitor}/prometheus:/etc/prometheus:ro"
+      - prometheus_data:/prometheus
+    depends_on:
+      - blackbox
+    networks:
+      netmon:
+      caddy_net:
+        aliases:
+          - prometheus-netmon
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.24.0
+    labels:
+      glance.name: "Blackbox"
+      glance.icon: "si:hackthebox"
+    restart: unless-stopped
+    dns:
+      - 192.168.1.10
+    command:
+      - --config.file=/config/blackbox.yml
+    ports:
+      - "9115:9115"
+    volumes:
+      - "${CONFIG_ROOT:-/srv/configs/net_monitor}/blackbox:/config:ro"
+    cap_add:
+      - NET_RAW
+    networks:
+      netmon:
+      caddy_net:
+        aliases:
+          - blackbox-netmon
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    labels:
+      glance.name: "Grafana"
+      glance.icon: "sh:grafana-light"
+      glance.url: "https://grafana.rabalski.eu"
+    restart: unless-stopped
+    dns:
+      - 192.168.1.10
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/
+      - TZ=${TZ:-Etc/UTC}
+    ports:
+      - "${GRAFANA_PORT:-3300}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - "${CONFIG_ROOT:-/srv/configs/net_monitor}/grafana/provisioning:/etc/grafana/provisioning:ro"
+      - "${CONFIG_ROOT:-/srv/configs/net_monitor}/grafana/dashboards:/var/lib/grafana/dashboards:ro"
+    depends_on:
+      - prometheus
+    networks:
+      netmon:
+      caddy_net:
+        aliases:
+          - grafana-netmon

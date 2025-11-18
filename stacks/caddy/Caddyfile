@@ -1,0 +1,264 @@
+{
+  # Global
+  email jakurb@rabalski.eu
+  # Enable verbose logs while diagnosing
+  debug
+}
+
+# --- wspólny filtr: tylko LAN + Tailscale ---
+(gate) {
+  @blocked not remote_ip 172.16.0.0/12 192.168.1.0/24 192.168.0.0/24 100.64.0.0/10 127.0.0.1/8 ::1 fd7a:115c:a1e0::/48
+  respond @blocked "Forbidden" 403
+}
+
+# --- ROOT domeny: 301 do HA (łatwo podmienić na stronę www) ---
+rabalski.eu, www.rabalski.eu {
+  redir https://dom.rabalski.eu{uri} 301
+}
+
+# ===========================
+# Vaultwarden
+# ===========================
+21376942.rabalski.eu {
+  import gate
+
+  @admin path /admin*
+  basic_auth @admin {
+    MoonAndStar $2a$14$4d1bebef2676gfWrypHNK.8QIC2/ftLZ/2WwA0Ae8OXCHbg65YFSa
+  }
+
+  encode zstd gzip
+  reverse_proxy http://vaultwarden:80 {
+    transport http {
+      read_buffer  64MB
+      write_buffer 64MB
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    # wyczyść nagłówki od klienta/proxy po drodze
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+# ===========================
+# SearXNG
+# ===========================
+search.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://searxng:8080
+}
+
+# ===========================
+# Nextcloud (AIO Apache)
+# ===========================
+cloud.rabalski.eu {
+  import gate
+  encode zstd gzip
+
+  reverse_proxy http://host.docker.internal:12000 {
+    # usuń odziedziczone i ustaw poprawne nagłówki do backendu
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+
+  # Jeśli kiedyś włączysz, trzymaj tu (na razie zakomentowane):
+  # redir /.well-known/carddav /remote.php/dav 301
+  # redir /.well-known/caldav  /remote.php/dav 301
+
+  # odpowiedzi do klienta (HSTS, itp.)
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  }
+}
+
+# ===========================
+# Portainer
+# ===========================
+portainer.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://portainer:9000
+}
+
+# ===========================
+# Nextcloud AIO Master (setup helper)
+# ===========================
+aio-setup.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy https://nextcloud-aio-mastercontainer:8080 {
+    transport http {
+      tls_insecure_skip_verify
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+# ===========================
+# AdGuard
+# ===========================
+sink.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://adguard:80
+}
+
+# ===========================
+# n.eko (Firefox / WebRTC)
+# ===========================
+kicia.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://neko:8080 {
+    transport http {
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+# ===========================
+# changedetection.io
+# ===========================
+watch.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://changedetection:5000
+}
+
+# ===========================
+# Glance
+# ===========================
+deck.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://glance:8080
+}
+
+# ===========================
+# Marreta
+# ===========================
+ram.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://marreta:80
+}
+
+# ===========================
+# Dumbpad
+# ===========================
+pad.rabalski.eu {
+  import gate
+  encode zstd gzip
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+  }
+  reverse_proxy http://dumbpad:3000
+}
+
+# ===========================
+# SpeedTest Tracker
+# ===========================
+speedtest.rabalski.eu {
+  import gate
+  encode zstd gzip
+  header {
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    X-Frame-Options "SAMEORIGIN"
+  }
+  reverse_proxy http://speedtest-tracker:80 {
+    transport http {
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+# ===========================
+# Prometheus
+# ===========================
+prometheus.rabalski.eu {
+  import gate
+  encode zstd gzip
+  tls {
+    dns cloudflare {env.CF_API_TOKEN}
+  }
+  reverse_proxy http://prometheus-netmon:9090
+}
+
+# ===========================
+# Grafana
+# ===========================
+grafana.rabalski.eu {
+  import gate
+  encode zstd gzip
+  tls {
+    dns cloudflare {env.CF_API_TOKEN}
+  }
+  reverse_proxy http://grafana-netmon:3000
+}
+
+# ===========================
+# n8n
+# ===========================
+n8n.rabalski.eu {
+  import gate
+  encode zstd gzip
+  tls {
+    dns cloudflare {env.CF_API_TOKEN}
+  }
+  reverse_proxy http://n8n:5678 {
+    transport http {
+      dial_timeout 10s
+      response_header_timeout 2m
+    }
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+}
+
+# ===========================
+# Home Assistant
+# ===========================
+dom.rabalski.eu {
+  import gate
+  encode gzip
+
+  reverse_proxy http://homeassistant:8123
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Referrer-Policy "no-referrer-when-downgrade"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+  }
+}

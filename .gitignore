@@ -1,0 +1,67 @@
+# ========================================
+# Homelab Infrastructure - Git Ignore
+# ========================================
+
+# === SECRETS ===
+# Never commit environment variables or credentials
+**/.env
+*.env
+!.env.template
+!.env.example
+
+# API tokens, keys, certificates
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+**/secrets/
+**/credentials/
+
+# === RUNTIME DATA ===
+# Data directories managed by containers
+**/data/
+**/logs/
+**/cache/
+**/*.log
+**/*.sqlite
+**/*.db
+
+# Service-specific runtime
+homelabbing/configs/*/database.sqlite
+homelabbing/configs/*/config.json
+homelabbing/configs/n8n/data/
+homelabbing/configs/portainer/data/
+homelabbing/configs/homeassistant/config/
+
+# === TEMPORARY FILES ===
+# Editor and system files
+*.swp
+*.swo
+*.bak
+*~
+.DS_Store
+Thumbs.db
+*.tmp
+
+# === IDE / EDITOR ===
+.vscode/
+.idea/
+*.iml
+.project
+.settings/
+
+# === OS SPECIFIC ===
+.Trash-*/
+.directory
+*.lnk
+
+# === BACKUP FILES ===
+*.backup
+*.old
+backup/
+snapshots/
+
+# === GIT ===
+.git-crypt/
+*.orig
