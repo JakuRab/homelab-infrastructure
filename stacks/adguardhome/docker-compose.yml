@@ -6,6 +6,7 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
+      - "3000:3000/tcp"  # Initial setup (can remove after configuration)
     volumes:
       - /opt/adguardhome/work:/opt/adguardhome/work
       - /opt/adguardhome/conf:/opt/adguardhome/conf
