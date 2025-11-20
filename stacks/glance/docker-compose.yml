@@ -4,7 +4,11 @@ services:
     container_name: glance
     restart: unless-stopped
     volumes:
-      - /opt/glance/glance.yml:/app/glance.yml:ro
+      - /opt/glance/assets:/app/assets:ro
+      - /opt/glance/config:/app/config:rw
+      - /opt/glance/secrets:/run/secrets:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /:/hostroot:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - "glance.name=Glance"
