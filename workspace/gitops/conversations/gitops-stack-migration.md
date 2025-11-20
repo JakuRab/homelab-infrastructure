@@ -755,3 +755,165 @@ Created comprehensive safeguards to prevent future data loss:
 **Session 3 completed successfully - including bonus monitoring stack!** 🎉
 
 *Last updated: 2025-11-20*
+
+---
+
+## Session 4: Glance Dashboard Migration (2025-11-20)
+
+**Duration:** ~1 hour
+**Status:** Dashboard aggregator successfully migrated!
+
+### What Was Accomplished
+
+#### 1. Glance Migration ✅ (Dashboard Aggregator)
+
+**Pre-migration preparation:**
+- ✅ Identified complex mount structure (5 bind mounts + docker.sock)
+- ✅ Discovered actual paths differ from Git config
+- ✅ Created full backup of config, secrets, and assets
+- ✅ Documented rollback plan
+
+**Challenges encountered:**
+- **Path mismatch**: Git had `/opt/glance/glance.yml`, actual was `/opt/glance/config/glance.yml`
+- **Missing volumes**: Git config was missing assets, secrets, and hostroot mounts
+- **Environment variables**: Container crash-looped missing LAT, LON, ADGUARD_USERNAME
+- **Secret newline**: Password file had trailing newline breaking authentication
+- **Wrong username**: Environment variable set to "admin" instead of "kuba"
+
+**Resolution:**
+1. Updated docker-compose.yml with all 6 volume mounts:
+   - `/opt/glance/assets:/app/assets:ro` (custom assets)
+   - `/opt/glance/config:/app/config:rw` (glance.yml configuration)
+   - `/opt/glance/secrets:/run/secrets:ro` (API keys, passwords)
+   - `/etc/localtime:/etc/localtime:ro` (timezone)
+   - `/:/hostroot:ro` (host filesystem access for monitoring)
+   - `/var/run/docker.sock:/var/run/docker.sock:ro` (Docker API)
+
+2. Added environment variables to compose file:
+   - `LAT` - Latitude for weather widgets
+   - `LON` - Longitude for weather widgets
+   - `ADGUARD_USERNAME` - For DNS stats integration
+
+3. Fixed AdGuard password secret:
+   - Removed trailing newline from `/opt/glance/secrets/adguard_password`
+   - Changed username from "admin" to "kuba"
+
+4. Deployed via Portainer Git integration
+5. All widgets working including AdGuard DNS stats
+
+**Migration successful** ✅
+- Service: https://deck.rabalski.eu
+- Dashboard displaying all services with Glance labels
+- AdGuard DNS stats working
+- Docker container monitoring active
+- Weather widgets functioning
+- GitHub release monitoring active
+- Portainer has full control
+- Auto-sync enabled (5 min polling)
+
+### Migration Progress Update
+
+**Completed:** 6/16 services (38%)
+- ✅ n8n (test case) - Session 1
+- ✅ AdGuard Home (critical DNS) - Session 2
+- ✅ Home Assistant (smart home) - Session 2
+- ✅ Vaultwarden (password manager) - Session 3
+- ✅ Monitoring Stack (Prometheus + Grafana + Blackbox) - Session 3
+- ✅ Glance (dashboard aggregator) - Session 4 ⭐
+
+**All critical services complete!** 🎊
+
+**Phase 3 (Medium):**
+- SearXNG, Changedetection, n.eko
+
+**Phase 4 (Low):**
+- Speedtest Tracker, Dumbpad, Marreta
+
+**Infrastructure (Manual):**
+- Caddy, Portainer, Nextcloud AIO, Tailscale
+
+### Files Created/Updated
+
+**Updated files:**
+- `stacks/glance/docker-compose.yml` - Fixed all volume mounts and added environment variables
+- `workspace/gitops/conversations/gitops-stack-migration.md` - Session 4 notes
+
+### Git Commits Today
+
+1. `fix: update Glance paths to match actual deployment`
+2. `fix: add environment variables to Glance compose file`
+
+### Key Learnings
+
+#### What Went Well ✅
+- Pre-migration checklist prevented data loss
+- Thorough volume inspection revealed complete mount structure
+- GitOps workflow allows quick iterations (update Git, wait 5 min)
+- Secrets management via bind mount works well
+
+#### Technical Insights 💡
+- **Glance is sophisticated**: Requires host filesystem access for monitoring
+- **Secrets without newlines**: Always use `echo -n` for secret files
+- **Environment variable debugging**: Check with `docker exec container printenv`
+- **Complex mounts**: Some apps need 5+ volume mounts - inspect carefully
+- **Built-in widgets**: Glance's `dns-stats` widget has specific auth requirements
+
+#### Process Improvements 📝
+- Always check `docker inspect` for ALL mounts, not just data volumes
+- Verify environment variables inside container after deployment
+- Check secret files for trailing whitespace/newlines
+- Test authentication credentials match actual service config
+
+### Statistics Update
+
+**Total time invested:** ~8 hours (across 4 sessions)
+**Services migrated:** 6/16 (38%)
+**Critical services:** 5/5 migrated (100%) ✅
+**Multi-container stacks:** 1/1 migrated (100%) ✅
+**Dashboard services:** 1/1 migrated (100%) ✅
+**Documentation created:** 9+ major files
+**Lines of infrastructure code:** ~1000+
+**Git commits:** 14+
+**Data preserved:** 100% (no losses)
+
+### Current State
+
+**All migrated services:**
+- ✅ Accessible via HTTPS
+- ✅ Portainer has full control
+- ✅ Auto-sync enabled (5 min polling)
+- ✅ Glance labels configured
+- ✅ Documented with README
+- ✅ All data preserved
+
+**Infrastructure health:**
+- DNS working (AdGuard Home)
+- Smart home working (Home Assistant)
+- Workflow automation working (n8n)
+- Password manager working (Vaultwarden)
+- Monitoring working (Prometheus + Grafana)
+- **Dashboard working (Glance)** ⭐
+- All services on `caddy_net`
+- TLS certificates valid
+- All services discoverable via Glance dashboard
+
+### Next Session Priorities
+
+**Easy wins remaining:**
+1. **Marreta** (stateless paywall bypass - simplest)
+2. **Dumbpad** (simple notepad with single volume)
+3. **Changedetection.io** (change monitoring)
+4. **SearXNG** (search engine)
+5. **n.eko** (browser sharing)
+6. **Speedtest Tracker** (network testing)
+
+**Progress:**
+- 6/16 services migrated (38%)
+- All critical infrastructure under GitOps ✅
+- Remaining services are quality-of-life improvements
+
+---
+
+**Session 4 completed successfully!** 🎉
+
+*Last updated: 2025-11-20*
