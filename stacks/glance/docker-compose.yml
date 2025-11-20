@@ -3,6 +3,10 @@ services:
     image: glanceapp/glance:latest
     container_name: glance
     restart: unless-stopped
+    environment:
+      - LAT=${LAT}
+      - LON=${LON}
+      - ADGUARD_USERNAME=${ADGUARD_USERNAME}
     volumes:
       - /opt/glance/assets:/app/assets:ro
       - /opt/glance/config:/app/config:rw
