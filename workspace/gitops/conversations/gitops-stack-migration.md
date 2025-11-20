@@ -608,3 +608,150 @@ Created comprehensive safeguards to prevent future data loss:
 **Session 3 completed successfully!** 🎉
 
 *Last updated: 2025-11-20*
+
+---
+
+## Session 3 (continued): Monitoring Stack Migration (2025-11-20)
+
+**Duration:** ~45 minutes
+**Status:** Multi-container stack successfully migrated!
+
+### What Was Accomplished
+
+#### 2. Monitoring Stack Migration ✅ (Complex Multi-Container Stack)
+
+**Pre-migration preparation:**
+- ✅ Identified all 3 containers: Prometheus, Grafana, Blackbox Exporter
+- ✅ Located named volumes: `net_monitor_prometheus_data` (61M), `net_monitor_grafana_data` (51K)
+- ✅ Verified config files at `/srv/configs/net_monitor/`
+- ✅ Created comprehensive backups of volumes and configs
+- ✅ Verified services working (Grafana + Prometheus accessible)
+
+**Stack composition:**
+- **Prometheus** - Metrics collection, 30-day retention
+- **Grafana** - Visualization dashboards
+- **Blackbox Exporter** - ICMP/HTTP/TCP probing
+
+**Migration approach:**
+- Named volumes automatically reused (persistent data)
+- Config files remain at `/srv/configs/net_monitor/` (bind mounts)
+- Stack name: `net_monitor` (critical for volume name matching)
+
+**Resolution:**
+1. Backed up all volumes and configs
+2. Stopped existing stack with `docker compose down`
+3. Verified data volumes remained intact
+4. Deployed via Portainer Git integration
+5. All 3 containers started successfully
+6. All historical metrics preserved
+
+**Migration successful** ✅
+- Prometheus: https://prometheus.rabalski.eu
+- Grafana: https://grafana.rabalski.eu
+- All 30 days of metrics retained
+- Dashboards and datasources intact
+- Blackbox probes functioning
+- Portainer has full control
+- Auto-sync enabled (5 min polling)
+
+### Migration Progress Update
+
+**Completed:** 5/16 services (31%)
+- ✅ n8n (test case) - Session 1
+- ✅ AdGuard Home (critical DNS) - Session 2
+- ✅ Home Assistant (smart home) - Session 2
+- ✅ Vaultwarden (password manager) - Session 3
+- ✅ Monitoring Stack (Prometheus + Grafana + Blackbox) - Session 3 ⭐
+
+**All critical services now migrated!** 🎊
+
+**Phase 3 (Medium):**
+- SearXNG, Changedetection, Glance, n.eko
+
+**Phase 4 (Low):**
+- Speedtest Tracker, Dumbpad, Marreta
+
+**Infrastructure (Manual):**
+- Caddy, Portainer, Nextcloud AIO, Tailscale
+
+### Files Created/Updated
+
+**No Git changes needed** - Stack configuration was already correct in repository!
+
+### Key Learnings
+
+#### What Went Well ✅
+- Named volumes automatically reused by matching stack name
+- Multi-container dependencies handled correctly
+- Config directory bind mounts worked seamlessly
+- 61MB of Prometheus data migrated without loss
+- All Grafana dashboards preserved
+
+#### Technical Insights 💡
+- **Stack naming is critical**: Stack name determines volume names (`stackname_volumename`)
+- **Named volumes persist**: Docker volumes survive container removal
+- **Bind mounts for configs**: Config files can stay on server, mounted read-only
+- **Multi-container orchestration**: Dependencies (prometheus → grafana) work automatically
+- **Environment variables**: Easy to configure per-stack in Portainer UI
+
+#### Process Improvements 📝
+- Multi-container stacks are no more complex than single containers
+- Named volumes make data persistence trivial
+- Pre-existing config directories don't need migration
+- Backup volumes BEFORE stopping containers (learned from Vaultwarden)
+
+### Statistics Update
+
+**Total time invested:** ~7 hours (across 3 sessions)
+**Services migrated:** 5/16 (31%)
+**Critical services:** 4/4 migrated (100%) ✅
+**Multi-container stacks:** 1/1 migrated (100%) ✅
+**Documentation created:** 8+ major files
+**Lines of infrastructure code:** ~950+
+**Git commits:** 12+
+**Data preserved:** 100% (no losses)
+
+### Current State
+
+**All migrated services:**
+- ✅ Accessible via HTTPS
+- ✅ Portainer has full control
+- ✅ Auto-sync enabled (5 min polling)
+- ✅ Glance labels configured
+- ✅ Documented with README
+- ✅ All data preserved
+
+**Infrastructure health:**
+- DNS working (AdGuard Home)
+- Smart home working (Home Assistant)
+- Workflow automation working (n8n)
+- Password manager working (Vaultwarden)
+- **Monitoring working (Prometheus + Grafana)** ⭐
+- All services on `caddy_net`
+- TLS certificates valid
+
+### Next Session Priorities
+
+**All critical services complete!** Now focusing on quality-of-life services:
+
+1. **Easy wins** (Quick migrations)
+   - Glance (dashboard aggregator)
+   - Marreta (stateless paywall bypass)
+   - Dumbpad (simple notepad)
+
+2. **Medium complexity**
+   - SearXNG (search engine)
+   - Changedetection.io (change monitoring)
+   - n.eko (browser sharing)
+   - Speedtest Tracker
+
+3. **Consider wrapping up**
+   - 5/16 services migrated (31%)
+   - All critical infrastructure under GitOps
+   - Remaining services are optional/convenience
+
+---
+
+**Session 3 completed successfully - including bonus monitoring stack!** 🎉
+
+*Last updated: 2025-11-20*
