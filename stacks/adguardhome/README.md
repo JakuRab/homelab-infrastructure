@@ -45,20 +45,42 @@ sudo mkdir -p /opt/adguardhome/{conf,work}
 
 ## DNS Rewrites Configuration
 
-Add these rewrites in AdGuard Home → Filters → DNS rewrites:
+**Critical:** These rewrites enable split-horizon DNS for all homelab services.
 
-| Domain | Answer |
-|--------|--------|
-| `*.rabalski.eu` | `192.168.1.10` |
+Add in AdGuard Home → Filters → DNS rewrites:
 
-Or individual entries:
-- `dom.rabalski.eu` → `192.168.1.10`
-- `21376942.rabalski.eu` → `192.168.1.10`
-- `search.rabalski.eu` → `192.168.1.10`
-- `cloud.rabalski.eu` → `192.168.1.10`
-- `portainer.rabalski.eu` → `192.168.1.10`
-- `sink.rabalski.eu` → `192.168.1.10`
-- ... (all other services)
+### Complete Service List
+
+| Service | Domain | IP |
+|---------|--------|-----|
+| Root redirect | `rabalski.eu` | `192.168.1.10` |
+| Home Assistant | `dom.rabalski.eu` | `192.168.1.10` |
+| Vaultwarden | `21376942.rabalski.eu` | `192.168.1.10` |
+| SearXNG | `search.rabalski.eu` | `192.168.1.10` |
+| Nextcloud | `cloud.rabalski.eu` | `192.168.1.10` |
+| Portainer | `portainer.rabalski.eu` | `192.168.1.10` |
+| AdGuard | `sink.rabalski.eu` | `192.168.1.10` |
+| n.eko | `kicia.rabalski.eu` | `192.168.1.10` |
+| Changedetection | `watch.rabalski.eu` | `192.168.1.10` |
+| Glance | `deck.rabalski.eu` | `192.168.1.10` |
+| n8n | `n8n.rabalski.eu` | `192.168.1.10` |
+| Marreta | `ram.rabalski.eu` | `192.168.1.10` |
+| Dumbpad | `pad.rabalski.eu` | `192.168.1.10` |
+| Speedtest | `speedtest.rabalski.eu` | `192.168.1.10` |
+| Prometheus | `prometheus.rabalski.eu` | `192.168.1.10` |
+| Grafana | `grafana.rabalski.eu` | `192.168.1.10` |
+| Nextcloud AIO Setup | `aio-setup.rabalski.eu` | `192.168.1.10` |
+
+**Shortcut:** Use wildcard rewrite:
+- Domain: `*.rabalski.eu`
+- Answer: `192.168.1.10`
+
+**Recommended Upstream DNS:**
+```
+https://dns.cloudflare.com/dns-query
+https://dns.quad9.net/dns-query
+https://dns.google/dns-query
+```
 
 ## Backup
 
