@@ -8,9 +8,14 @@ services:
     devices:
       - /dev/serial/by-id/usb-Itead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_V2_184bf3194b53ef11b8be2ce0174bec31-if00-port0:/dev/ttyUSB0
     volumes:
-      - ha_config:/config
+      - homeassistant_ha_config:/config
       - /etc/localtime:/etc/localtime:ro
       - /run/udev:/run/udev:ro
+    labels:
+      - "glance.name=Home Assistant"
+      - "glance.icon=si:homeassistant"
+      - "glance.url=https://dom.rabalski.eu"
+      - "glance.description=Smart Home"
     networks:
       - caddy_net
 
@@ -19,4 +24,5 @@ networks:
     external: true
 
 volumes:
-  ha_config: {}
+  homeassistant_ha_config:
+    external: true
