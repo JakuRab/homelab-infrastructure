@@ -1,7 +1,7 @@
 services:
-  adguardhome:
+  adguard:
     image: adguard/adguardhome:latest
-    container_name: adguardhome
+    container_name: adguard
     restart: unless-stopped
     ports:
       - "53:53/tcp"
