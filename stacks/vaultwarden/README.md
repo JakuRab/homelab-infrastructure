@@ -14,7 +14,7 @@ Self-hosted Bitwarden-compatible password manager.
 
 - **Image:** `vaultwarden/server:latest`
 - **Domain:** `21376942.rabalski.eu`
-- **Data:** `/opt/vaultwarden/data/`
+- **Data:** `/home/sothasil/vaultwarden/data/`
 - **Network:** `caddy_net`
 
 ## Deployment
@@ -22,8 +22,8 @@ Self-hosted Bitwarden-compatible password manager.
 ### Prerequisites
 
 ```bash
-# Create data directory
-sudo mkdir -p /opt/vaultwarden/data
+# Data directory (already exists in current deployment)
+# /home/sothasil/vaultwarden/data
 ```
 
 ### Via Portainer
@@ -68,7 +68,7 @@ basic_auth @admin {
 docker stop vaultwarden
 
 # Backup entire data directory
-sudo tar -czf vaultwarden-$(date +%Y%m%d).tar.gz -C /opt/vaultwarden/data .
+sudo tar -czf vaultwarden-$(date +%Y%m%d).tar.gz -C /home/sothasil/vaultwarden/data .
 
 # Restart
 docker start vaultwarden
@@ -93,7 +93,7 @@ bw export --format encrypted_json --password STRONG_PASSWORD > vault-export.json
 
 ```bash
 # The database file contains all vault data
-cp /opt/vaultwarden/data/db.sqlite3 ~/backups/vaultwarden-db-$(date +%Y%m%d).sqlite3
+cp /home/sothasil/vaultwarden/data/db.sqlite3 ~/backups/vaultwarden-db-$(date +%Y%m%d).sqlite3
 ```
 
 ### What's in the data directory
@@ -110,8 +110,8 @@ cp /opt/vaultwarden/data/db.sqlite3 ~/backups/vaultwarden-db-$(date +%Y%m%d).sql
 
 ```bash
 docker stop vaultwarden
-sudo rm -rf /opt/vaultwarden/data/*
-sudo tar -xzf vaultwarden-YYYYMMDD.tar.gz -C /opt/vaultwarden/data/
+sudo rm -rf /home/sothasil/vaultwarden/data/*
+sudo tar -xzf vaultwarden-YYYYMMDD.tar.gz -C /home/sothasil/vaultwarden/data/
 docker start vaultwarden
 ```
 
@@ -162,7 +162,7 @@ docker ps | grep vaultwarden
 docker logs vaultwarden
 
 # Verify database exists
-ls -la /opt/vaultwarden/data/db.sqlite3
+ls -la /home/sothasil/vaultwarden/data/db.sqlite3
 ```
 
 ### WebSocket notifications not working
