@@ -465,3 +465,146 @@ Created comprehensive safeguards to prevent future data loss:
 **Session 2 completed successfully!** 🎉
 
 *Last updated: 2025-11-20*
+
+---
+
+## Session 3: Vaultwarden Migration (2025-11-20)
+
+**Duration:** ~1 hour
+**Status:** Critical service successfully migrated!
+
+### What Was Accomplished
+
+#### 1. Vaultwarden Migration ✅ (CRITICAL SERVICE!)
+
+**Pre-migration preparation:**
+- ✅ Identified actual data location: `/home/sothasil/vaultwarden/data/`
+- ✅ Updated Git config to match working deployment
+- ✅ Created full backup (788K - includes db.sqlite3, rsa_key.pem, icon_cache)
+- ✅ User had already exported vault via Bitwarden CLI
+- ✅ Documented rollback plan
+
+**Challenges encountered:**
+- **Path mismatch**: Git repo expected `/opt/vaultwarden/data/`, but actual data was at `/home/sothasil/vaultwarden/data/`
+- **Domain verification**: Confirmed correct domain (21376942.rabalski.eu)
+- **SMTP configuration error**: Container crash-looping with error:
+  ```
+  Error loading config:
+    Both SMTP_HOST and SMTP_FROM need to be set for email support without USE_SENDMAIL
+  ```
+
+**Resolution:**
+1. Updated docker-compose.yml to use correct data path
+2. Removed SMTP environment variables (optional, were causing crashes)
+3. Pushed fixes to Git
+4. Redeployed via Portainer
+5. All vault data intact and accessible
+
+**Migration successful** ✅
+- Service: https://21376942.rabalski.eu
+- All passwords and vault data preserved
+- Portainer has full control
+- Auto-sync enabled (5 min polling)
+
+### Migration Progress Update
+
+**Completed:** 4/16 services (25%)
+- ✅ n8n (test case) - Session 1
+- ✅ AdGuard Home (critical DNS) - Session 2
+- ✅ Home Assistant (smart home) - Session 2
+- ✅ Vaultwarden (password manager) - Session 3 ⭐
+
+**Remaining Critical:**
+- ⏳ Monitoring stack (Prometheus + Grafana)
+
+**Phase 3 (Medium):**
+- SearXNG, Changedetection, Glance, n.eko
+
+**Phase 4 (Low):**
+- Speedtest Tracker, Dumbpad, Marreta
+
+**Infrastructure (Manual):**
+- Caddy, Portainer, Nextcloud AIO, Tailscale
+
+### Files Created/Updated
+
+**Updated files:**
+- `stacks/vaultwarden/docker-compose.yml` - Fixed data path, removed SMTP vars
+- `stacks/vaultwarden/README.md` - Updated all path references
+- `workspace/gitops/conversations/gitops-stack-migration.md` - Session 3 notes
+
+### Git Commits Today
+
+1. `fix: update Vaultwarden paths to match current deployment`
+2. `fix: remove SMTP env vars causing Vaultwarden crash`
+
+### Key Learnings
+
+#### What Went Well ✅
+- Pre-migration checklist worked perfectly
+- Full backup created before any changes
+- Identified configuration mismatches early
+- Quick diagnosis and fix for SMTP issue
+- All data preserved through migration
+
+#### Technical Insights 💡
+- **Path flexibility**: Don't assume `/opt/` - verify actual paths first
+- **Environment variables**: Empty/unset env vars can cause crashes - remove optional ones
+- **SMTP in Vaultwarden**: Requires BOTH `SMTP_HOST` and `SMTP_FROM` if either is set
+- **Backup location**: Data was at `/home/sothasil/vaultwarden/data/`, not `/opt/`
+
+#### Process Improvements 📝
+- Always check actual mount points via `docker inspect`
+- Verify environment variables match current working deployment
+- Test container logs immediately after deployment
+- Optional features should be truly optional (commented out)
+
+### Next Session Priorities
+
+1. **Monitoring stack** (net_monitor)
+   - Multi-container: Prometheus + Grafana + Blackbox Exporter
+   - Good test for complex stacks
+   - Already has configurations
+
+2. **Easy wins** (Build momentum)
+   - Glance (dashboard aggregator)
+   - Marreta (stateless, simple)
+   - Changedetection.io
+
+3. **Medium complexity**
+   - SearXNG (search engine)
+   - n.eko (browser sharing)
+   - Speedtest Tracker
+
+### Statistics
+
+**Total time invested:** ~6 hours (across 3 sessions)
+**Services migrated:** 4/16 (25%)
+**Critical services migrated:** 3/4 (75%) - AdGuard, Home Assistant, Vaultwarden
+**Documentation created:** 8+ major files
+**Lines of infrastructure code:** ~950+
+**Git commits:** 12+
+
+### Current State
+
+**All migrated services:**
+- ✅ Accessible via HTTPS
+- ✅ Portainer has full control
+- ✅ Auto-sync enabled (5 min polling)
+- ✅ Glance labels configured
+- ✅ Documented with README
+- ✅ All data preserved
+
+**Infrastructure health:**
+- DNS working (AdGuard Home)
+- Smart home working (Home Assistant)
+- Workflow automation working (n8n)
+- Password manager working (Vaultwarden) ⭐
+- All services on `caddy_net`
+- TLS certificates valid
+
+---
+
+**Session 3 completed successfully!** 🎉
+
+*Last updated: 2025-11-20*
