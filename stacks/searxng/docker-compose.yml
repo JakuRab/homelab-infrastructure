@@ -7,7 +7,7 @@ services:
       - SEARXNG_BASE_URL=https://search.rabalski.eu/
       - SEARXNG_SECRET=${SEARXNG_SECRET:-}
     volumes:
-      - /opt/searxng/config:/etc/searxng
+      - /home/sothasil/searxng/searxng:/etc/searxng:rw
     labels:
       - "glance.name=SearXNG"
       - "glance.icon=si:searxng"
