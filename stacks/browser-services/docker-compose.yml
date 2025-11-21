@@ -1,0 +1,59 @@
+services:
+  selenium-hub:
+    image: selenium/hub:4.27.0-20241204
+    container_name: selenium-hub
+    restart: unless-stopped
+    environment:
+      - GRID_MAX_SESSION=10
+      - GRID_BROWSER_TIMEOUT=10
+      - GRID_TIMEOUT=10
+      - SE_ENABLE_TRACING=false
+    networks:
+      - caddy_net
+      - selenium-grid
+
+  selenium-chromium:
+    image: selenium/node-chromium:4.27.0-20241204
+    container_name: selenium-chromium
+    restart: unless-stopped
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    shm_size: 2gb
+    networks:
+      - selenium-grid
+
+  selenium-firefox:
+    image: selenium/node-firefox:4.27.0-20241204
+    container_name: selenium-firefox
+    restart: unless-stopped
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    shm_size: 2gb
+    networks:
+      - selenium-grid
+
+  browserless-chrome:
+    image: ghcr.io/browserless/chrome:latest
+    container_name: browserless-chrome
+    restart: unless-stopped
+    environment:
+      - MAX_CONCURRENT_SESSIONS=10
+      - CONNECTION_TIMEOUT=10000
+      - MAX_QUEUE_LENGTH=10
+      - PREBOOT_CHROME=true
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true
+  selenium-grid:
+    driver: bridge
