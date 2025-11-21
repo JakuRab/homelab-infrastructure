@@ -1,8 +1,16 @@
 services:
   marreta:
-    image: ghcr.io/tiagocoutinh0/marreta:latest
+    image: ghcr.io/manualdousuario/marreta:latest
     container_name: marreta
     restart: unless-stopped
+    environment:
+      - SITE_URL=https://ram.rabalski.eu
+      - SITE_NAME=Marreta
+      - SITE_DESCRIPTION=Clean reading, fewer blockers
+      - SELENIUM_HOST=selenium-hub:4444
+      - DNS_SERVERS=1.1.1.1,8.8.8.8
+      - LOG_LEVEL=WARNING
+      - LANGUAGE=en
     labels:
       - "glance.name=Marreta"
       - "glance.icon=sh:hammer"
