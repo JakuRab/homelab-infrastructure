@@ -9,7 +9,7 @@ services:
       - TZ=Europe/Warsaw
       - BASE_URL=https://watch.rabalski.eu
     volumes:
-      - /opt/changedetection/data:/datastore
+      - changedetection-data:/datastore
     labels:
       - "glance.name=Changedetection"
       - "glance.icon=sh:eye"
@@ -17,6 +17,9 @@ services:
       - "glance.description=Website Monitoring"
     networks:
       - caddy_net
+
+volumes:
+  changedetection-data:
 
 networks:
   caddy_net:
