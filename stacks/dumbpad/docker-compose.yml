@@ -1,10 +1,10 @@
 services:
   dumbpad:
-    image: ghcr.io/dumbpad/dumbpad:latest
+    image: dumbwareio/dumbpad:latest
     container_name: dumbpad
     restart: unless-stopped
     volumes:
-      - /opt/dumbpad/data:/data
+      - /srv/dumbpad/data:/app/data
     labels:
       - "glance.name=Dumbpad"
       - "glance.icon=sh:notepad-text"
