@@ -9,10 +9,12 @@ services:
       - NEKO_PASSWORD=${NEKO_PASSWORD}
       - NEKO_PASSWORD_ADMIN=${NEKO_PASSWORD_ADMIN}
       - NEKO_EPR=52000-52100
+      - NEKO_TCPMUX=52100
       - NEKO_ICELITE=true
       - NEKO_NAT1TO1=31.178.229.212
     ports:
       - "52000-52100:52000-52100/udp"
+      - "52100:52100/tcp"
     labels:
       - "glance.name=n.eko"
       - "glance.icon=si:firefox"
