@@ -76,7 +76,7 @@
       "pluginVersion": "11.2.0",
       "targets": [
         {
-          "expr": "probe_success{job=~"icmp|http|tcp"}",
+          "expr": "probe_success{job=~\"icmp|http|tcp\"}",
           "legendFormat": "{{job}} - {{instance}}",
           "refId": "A"
         }
@@ -138,7 +138,7 @@
       "pluginVersion": "11.2.0",
       "targets": [
         {
-          "expr": "avg_over_time(probe_duration_seconds{job="icmp"}[5m])",
+          "expr": "avg_over_time(probe_duration_seconds{job=\" icmp\"}[5m])",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -200,7 +200,7 @@
       "pluginVersion": "11.2.0",
       "targets": [
         {
-          "expr": "avg_over_time(probe_duration_seconds{job="http"}[5m])",
+          "expr": "avg_over_time(probe_duration_seconds{job=\"http\"}[5m])",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -258,7 +258,7 @@
       "pluginVersion": "11.2.0",
       "targets": [
         {
-          "expr": "probe_success{job="icmp"} * 100",
+          "expr": "probe_success{job=\"icmp\"} * 100",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
