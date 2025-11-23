@@ -1,6 +1,7 @@
 groups:
   - name: blackbox-alerts
     rules:
+      # Service Availability Alerts
       - alert: BlackboxProbeFailure
         expr: probe_success == 0
         for: 45s
@@ -8,14 +9,139 @@ groups:
           severity: critical
         annotations:
           summary: "Probe failed ({{ $labels.instance }})"
-          description: "Blackbox probe to {{ $labels.instance }} using {{ $labels.module }} has been failing for at least 45 seconds."
+          description: "Blackbox probe to {{ $labels.instance }} using {{ $labels.job }} has been failing for at least 45 seconds."
 
+      - alert: ServiceFlapping
+        expr: changes(probe_success[10m]) > 3
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service flapping detected ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} has changed state {{ $value }} times in the last 10 minutes, indicating instability."
+
+      - alert: LowServiceAvailability
+        expr: avg_over_time(probe_success[1h]) < 0.95
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low availability ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} has {{ $value | humanizePercentage }} uptime in the last hour (below 95% SLA)."
+
+      # Network Performance Alerts
       - alert: HighRoundTripTime
-        expr: |
-          avg_over_time(probe_duration_seconds{module="icmp"}[5m]) > 0.25
+        expr: avg_over_time(probe_duration_seconds{job="icmp"}[5m]) > 0.25
         for: 5m
         labels:
           severity: warning
         annotations:
           summary: "High latency ({{ $labels.instance }})"
-          description: "Average probe duration has stayed above 250ms for the last 5 minutes."
+          description: "Average ICMP probe duration to {{ $labels.instance }} has stayed above 250ms for the last 5 minutes (current: {{ $value | humanizeDuration }})."
+
+      - alert: LatencySpike
+        expr: |
+          probe_duration_seconds{job="icmp"} >
+          (avg_over_time(probe_duration_seconds{job="icmp"}[5m]) +
+           2 * stddev_over_time(probe_duration_seconds{job="icmp"}[5m]))
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latency spike detected ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} is experiencing a latency spike ({{ $value | humanizeDuration }}) more than 2 standard deviations above the 5-minute average."
+
+      - alert: HighNetworkJitter
+        expr: stddev_over_time(probe_duration_seconds{job="icmp"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network jitter ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} is experiencing high jitter ({{ $value | humanizeDuration }} standard deviation) over the last 5 minutes."
+
+      - alert: PacketLoss
+        expr: (1 - rate(probe_success{job="icmp"}[5m])) * 100 > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Packet loss detected ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} is experiencing {{ $value | humanize }}% packet loss over the last 5 minutes."
+
+      # HTTP/HTTPS Alerts
+      - alert: SlowHTTPResponse
+        expr: avg_over_time(probe_duration_seconds{job="http"}[5m]) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow HTTP response ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} average response time is {{ $value | humanizeDuration }} (above 2 seconds) over the last 5 minutes."
+
+      - alert: HTTPStatusCodeChanged
+        expr: changes(probe_http_status_code{job="http"}[10m]) > 0
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "HTTP status code changed ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} returned different HTTP status codes in the last 10 minutes."
+
+      - alert: UnexpectedHTTPStatusCode
+        expr: probe_http_status_code{job="http"} >= 400
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP error status ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} is returning HTTP status code {{ $value }} (client/server error)."
+
+      - alert: SSLCertificateExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry{job="http"} - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon ({{ $labels.instance }})"
+          description: "SSL certificate for {{ $labels.instance }} will expire in {{ $value | humanize }} days."
+
+      - alert: SSLCertificateCritical
+        expr: (probe_ssl_earliest_cert_expiry{job="http"} - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL certificate expires in less than 7 days ({{ $labels.instance }})"
+          description: "SSL certificate for {{ $labels.instance }} will expire in {{ $value | humanize }} days. Immediate action required!"
+
+      # TCP Connection Alerts
+      - alert: TCPConnectionFailed
+        expr: probe_success{job="tcp"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TCP connection failed ({{ $labels.instance }})"
+          description: "TCP probe to {{ $labels.instance }} has been failing for at least 1 minute."
+
+      # Performance Degradation Alerts
+      - alert: ResponseTimeDegrading
+        expr: |
+          (avg_over_time(probe_duration_seconds[30m]) -
+           avg_over_time(probe_duration_seconds[30m] offset 1h)) > 0.1
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Response time degrading ({{ $labels.instance }})"
+          description: "{{ $labels.instance }} response time has increased by more than 100ms compared to 1 hour ago."
+
+      - alert: MultipleServicesDown
+        expr: count(probe_success == 0) > 2
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Multiple services down"
+          description: "{{ $value }} services are currently down. This may indicate a broader network issue."
