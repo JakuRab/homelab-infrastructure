@@ -1,6 +1,8 @@
 # Homelab Infrastructure
 
-GitOps-managed homelab infrastructure running on Docker with Portainer orchestration.
+Public repository containing GitOps-managed Docker Compose stacks for Portainer deployment.
+
+> **Note**: This repository contains only service deployment configurations. Documentation, workspace conversations, and desktop configs are in a separate private repository (`homelab-docs`).
 
 ## 🏗️ Architecture Overview
 
@@ -9,35 +11,41 @@ GitOps-managed homelab infrastructure running on Docker with Portainer orchestra
 - **DNS**: Split-horizon (Cloudflare public + AdGuard Home internal)
 - **Access**: LAN (192.168.1.0/24) + Tailscale VPN only (private-by-default)
 - **Orchestration**: Portainer CE with Git auto-sync
-- **Server**: `clockworkcity` (Ubuntu 24.04.3 LTS)
+- **Servers**:
+  - `clockworkcity` (Ubuntu 24.04.3 LTS) - Edge server, reverse proxy
+  - `narsis` (Debian 13 Trixie) - Application server
 
 ## 📁 Repository Structure
 
 ```
 .
-├── stacks/                      # Docker Compose stacks
-│   ├── caddy/                  # Reverse proxy (custom build with Cloudflare plugin)
+├── stacks/                      # Docker Compose stacks (Portainer GitOps)
+│   ├── caddy/                  # Reverse proxy (Cloudflare DNS plugin)
+│   ├── adguardhome/            # DNS & ad blocking
+│   ├── homeassistant/          # Home automation
+│   ├── vaultwarden/            # Password manager
 │   ├── n8n/                    # Workflow automation
-│   ├── home-assistant/         # Home automation
-│   ├── monitoring/             # Prometheus + Grafana + Blackbox
+│   ├── net_monitor/            # Prometheus + Grafana + Blackbox
+│   ├── searxng/                # Metasearch engine
+│   ├── glance/                 # Dashboard
+│   ├── changedetection/        # Website monitoring
+│   ├── neko/                   # Browser isolation (Firefox)
+│   ├── dumbpad/                # Note-taking
+│   ├── marreta/                # Pastebin/snippet manager
+│   ├── speedtest-tracker/      # Internet speed monitoring
+│   ├── browser-services/       # Selenium Grid
 │   ├── portainer/              # Container management
-│   └── ...                     # Other services
-├── linux/                       # Desktop environment configs
-│   ├── configs/
-│   │   ├── hyprland/           # Wayland compositor (Almalexia workstation)
-│   │   └── nvim/               # Editor documentation
-├── homelabbing/                 # Legacy structure (deprecated)
-│   ├── homelab.md              # Architecture documentation
-│   └── convos/                 # Historical setup notes
-├── docs/                        # Documentation
-│   ├── deployment.md           # How to deploy stacks
-│   ├── portainer-setup.md      # Portainer Git integration
-│   └── disaster-recovery.md    # Complete rebuild procedures
-├── scripts/                     # Automation scripts
-│   ├── init-server.sh          # Fresh server setup
-│   └── deploy-stack.sh         # Stack deployment helper
+│   └── tailscale/              # VPN systemd configs
+├── CLAUDE.md                    # AI assistant guidance (symlink to homelab-docs)
+├── .gitignore                   # Git ignore rules
 └── README.md                    # This file
 ```
+
+**Documentation repository** (`homelab-docs`, private):
+- Complete architecture documentation
+- Migration guides and runbooks
+- AI workspace and conversation logs
+- Desktop environment configurations
 
 ## 🚀 Quick Start
 
@@ -71,7 +79,7 @@ GitOps-managed homelab infrastructure running on Docker with Portainer orchestra
    - Check "Automatic updates"
    - Configure webhook for push-triggered deployments
 
-See [`docs/deployment.md`](docs/deployment.md) for detailed walkthrough.
+See documentation repository (`homelab-docs`) for detailed deployment guides.
 
 ## 🔐 Secrets Management
 
@@ -112,14 +120,17 @@ All services accessible via `https://<subdomain>.rabalski.eu`:
 | Tailscale | N/A | VPN (systemd service) | Docs only |
 | Cloudflare DDNS | N/A | Dynamic DNS (TBD if needed) | Evaluate |
 
-**Total:** 17 services • See **[Migration Tracker](docs/migration-tracker.md)** for detailed information
+**Total:** 17 services
 
 ## 📖 Documentation
 
-- **[Architecture Overview](homelabbing/homelab.md)**: Complete network topology, service catalog, data layout
-- **[Deployment Guide](docs/deployment.md)**: Step-by-step stack deployment
-- **[Portainer Setup](docs/portainer-setup.md)**: Git integration and webhook configuration
-- **[Disaster Recovery](docs/disaster-recovery.md)**: Rebuild from scratch procedures
+All documentation is in the separate `homelab-docs` private repository:
+
+- **Architecture Overview**: Complete network topology, service catalog, data layout
+- **Deployment Guides**: Step-by-step stack deployment procedures
+- **Migration Documentation**: narsis migration summary and lessons learned
+- **Disaster Recovery**: Rebuild from scratch procedures
+- **Workspace**: AI-assisted conversation logs organized by topic
 
 ## 🛠️ Common Operations
 
@@ -158,49 +169,35 @@ For services not yet migrated to Portainer Git:
 rsync -av stacks/SERVICE_NAME/ user@clockworkcity:/path/on/server/
 ```
 
-## 🔄 Migration Status
+## 🔄 Migration Status (2025-11-26)
 
-**Total Services:** 17 (see [`docs/migration-tracker.md`](docs/migration-tracker.md) for complete inventory)
+**Repository published to GitHub** ✅
 
-**Phase 1 - Foundation:**
-- [x] Git repository setup
-- [x] Secrets management structure
-- [x] Documentation framework
-- [ ] Push to GitHub
-- [ ] n8n test migration ⭐
+**Services migrated to narsis** (10 of 17):
+- ✅ Glance, SearXNG, Changedetection.io
+- ✅ Dumbpad, Browser-services, Marreta
+- ✅ Speedtest Tracker, n.eko
+- ✅ Monitoring stack (Prometheus + Grafana + Blackbox)
+- ✅ n8n
 
-**Phase 2 - Critical Services:**
-- [ ] AdGuard Home (DNS)
-- [ ] Home Assistant
-- [ ] Vaultwarden (requires careful backup)
-- [ ] Monitoring stack
+**Services remaining on clockworkcity** (7):
+- AdGuard Home (DNS)
+- Home Assistant (USB device passthrough)
+- Vaultwarden (requires careful backup)
+- Nextcloud AIO (special deployment model)
+- Caddy (edge server, reverse proxy)
+- Portainer (bootstrap service)
+- Tailscale (systemd service)
 
-**Phase 3 - Medium Priority:**
-- [ ] SearXNG
-- [ ] Changedetection.io
-- [ ] Glance
-- [ ] n.eko
-
-**Phase 4 - Low Priority:**
-- [ ] Speedtest Tracker
-- [ ] Dumbpad
-- [ ] Marreta
-- [ ] Cloudflare DDNS (evaluate if needed)
-
-**Infrastructure (Keep Manual):**
-- [x] Caddy (too critical for auto-deploy)
-- [x] Portainer (bootstrap service)
-- [x] Nextcloud AIO (special deployment model)
-- [x] Tailscale (systemd service, not containerized)
-
-See **[Migration Tracker](docs/migration-tracker.md)** for detailed status and service information.
+See `homelab-docs` repository for detailed migration documentation and lessons learned.
 
 ## 🏗️ Future Plans
 
-- Migrate to Supermicro platform (see `homelabbing/homelab.md` §15)
-- Implement GitHub Actions for validation
+- Complete service migration to narsis
+- Implement GitHub Actions for compose file validation
 - Add Renovate for automated dependency updates
 - Expand monitoring with Loki for log aggregation
+- Evaluate ZFS setup for narsis bulk storage
 
 ## 📝 Development
 
@@ -219,8 +216,7 @@ See **[Migration Tracker](docs/migration-tracker.md)** for detailed status and s
 ## 🆘 Support
 
 - **Issues**: Use GitHub Issues for bug reports
-- **Discussions**: Architecture questions and ideas
-- **Documentation**: Start with `homelabbing/homelab.md`
+- **Documentation**: See `homelab-docs` repository for complete documentation
 
 ## 📜 License
 
@@ -228,5 +224,5 @@ Personal infrastructure - use at your own risk. No warranty provided.
 
 ---
 
-**Last updated**: 2025-11-18
+**Last updated**: 2025-11-27
 **Maintainer**: Kuba Rabalski

@@ -1,7 +1,0 @@
-[Unit]
-Description=Tailscale healthcheck (oneshot)
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/tailscale-healthcheck.sh
-

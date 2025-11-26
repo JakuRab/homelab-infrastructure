@@ -1,6 +1,22 @@
 # ========================================
-# Homelab Infrastructure - Git Ignore
+# Homelab Infrastructure - Public Repository
+# Only tracks /stacks directory for Portainer GitOps deployment
 # ========================================
+#
+# Documentation and workspace moved to separate private repo (homelab-docs)
+# This repo is PUBLIC - contains only service deployment configurations
+#
+# ========================================
+
+# === DIRECTORIES (moved to homelab-docs private repo) ===
+/docs/
+/workspace/
+/config/
+/scripts/
+/archive/
+
+# Keep stacks directory tracked
+!/stacks/
 
 # === SECRETS ===
 # Never commit environment variables or credentials

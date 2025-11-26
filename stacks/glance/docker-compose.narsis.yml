@@ -1,0 +1,29 @@
+services:
+  glance:
+    image: glanceapp/glance:latest
+    container_name: glance
+    restart: unless-stopped
+    environment:
+      - LAT=${LAT}
+      - LON=${LON}
+      - ADGUARD_USERNAME=${ADGUARD_USERNAME}
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/nvme/services/glance/assets:/app/assets:ro
+      - /mnt/nvme/services/glance/config:/app/config:rw
+      - /mnt/nvme/services/glance/secrets:/run/secrets:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /:/hostroot:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "glance.name=Glance"
+      - "glance.icon=sh:layout-dashboard"
+      - "glance.url=https://deck.rabalski.eu"
+      - "glance.description=Dashboard"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true
