@@ -8,8 +8,10 @@ services:
       - PGID=1000
       - TZ=Europe/Warsaw
       - BASE_URL=https://watch.rabalski.eu
+    ports:
+      - "5000:5000"
     volumes:
-      - changedetection-data:/datastore
+      - /mnt/nvme/services/changedetection/data:/datastore
     labels:
       - "glance.name=Changedetection"
       - "glance.icon=sh:eye"
@@ -17,9 +19,6 @@ services:
       - "glance.description=Website Monitoring"
     networks:
       - caddy_net
-
-volumes:
-  changedetection-data:
 
 networks:
   caddy_net:
