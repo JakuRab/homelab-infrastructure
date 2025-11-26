@@ -121,7 +121,7 @@ sink.rabalski.eu {
 kicia.rabalski.eu {
   import gate
   encode zstd gzip
-  reverse_proxy http://neko:8080 {
+  reverse_proxy http://192.168.1.11:8082 {
     transport http {
       dial_timeout 10s
       response_header_timeout 2m
