@@ -3,8 +3,10 @@ services:
     image: dumbwareio/dumbpad:latest
     container_name: dumbpad
     restart: unless-stopped
+    ports:
+      - "3000:3000"
     volumes:
-      - /srv/dumbpad/data:/app/data
+      - /mnt/nvme/services/dumbpad/data:/app/data
     labels:
       - "glance.name=Dumbpad"
       - "glance.icon=sh:notepad-text"
