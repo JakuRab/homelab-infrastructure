@@ -7,10 +7,12 @@ services:
       - LAT=${LAT}
       - LON=${LON}
       - ADGUARD_USERNAME=${ADGUARD_USERNAME}
+    ports:
+      - "8080:8080"
     volumes:
-      - /opt/glance/assets:/app/assets:ro
-      - /opt/glance/config:/app/config:rw
-      - /opt/glance/secrets:/run/secrets:ro
+      - /mnt/nvme/services/glance/assets:/app/assets:ro
+      - /mnt/nvme/services/glance/config:/app/config:rw
+      - /mnt/nvme/services/glance/secrets:/run/secrets:ro
       - /etc/localtime:/etc/localtime:ro
       - /:/hostroot:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
