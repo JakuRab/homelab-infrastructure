@@ -209,7 +209,7 @@ prometheus.rabalski.eu {
   tls {
     dns cloudflare {env.CF_API_TOKEN}
   }
-  reverse_proxy http://prometheus-netmon:9090
+  reverse_proxy http://192.168.1.11:9090
 }
 
 # ===========================
@@ -221,7 +221,7 @@ grafana.rabalski.eu {
   tls {
     dns cloudflare {env.CF_API_TOKEN}
   }
-  reverse_proxy http://grafana-netmon:3000
+  reverse_proxy http://192.168.1.11:3300
 }
 
 # ===========================
