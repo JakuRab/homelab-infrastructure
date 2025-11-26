@@ -1,83 +1,307 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working in this repository.
 
 ## Repository Overview
 
-This is a personal infrastructure repository combining:
-- **Homelabbing**: Self-hosted services on `clockworkcity` server (Ubuntu 24.04.3 LTS)
-- **Linux configs**: Desktop environment configurations for `Almalexia` workstation (OpenSUSE Tumbleweed)
-- **AI workspace**: Conversation tracking and documentation
+**Purpose:** GitOps-managed homelab infrastructure combining self-hosted services, desktop configurations, and AI-assisted development workflows.
+
+**Main Components:**
+- **Homelab stacks**: Docker Compose services for Portainer deployment (17 services)
+- **Desktop configs**: Hyprland/Plasma configurations for Almalexia workstation
+- **Documentation**: Architecture guides, runbooks, and migration tracking
+- **AI workspace**: Topic-based conversation logs and project planning
+
+**Version Control:**
+- Main repository: Git-tracked, ready for GitHub push
+- Secrets: Separate private repository (referenced but not committed)
+- Configuration: `.gitignore` protects `.env` files, keys, certificates
+
+---
+
+## Infrastructure Overview
+
+### Active Systems
+
+**Production Server: `clockworkcity`**
+- OS: Ubuntu 24.04.3 LTS
+- IP: 192.168.1.10 (static DHCP reservation)
+- Role: Edge server (Caddy reverse proxy, AdGuard DNS)
+- Services: Core infrastructure + 7 remaining services
+- Tailscale: 100.98.21.87 (clockworkcity.tail7d1f88.ts.net)
+- Status: Transitioning to dedicated router/firewall role
+
+**Media Server: `narsis`**
+- OS: Debian 13 (Trixie)
+- IP: 192.168.1.11 (static DHCP reservation)
+- Tailscale: 100.87.23.43 (narsis.tail7d1f88.ts.net, IPv6: fd7a:115c:a1e0::a037:172b)
+- Hardware: Supermicro X10SRL-F, Xeon E5-2660 v4, 32GB ECC DDR4
+- Storage:
+  - Boot: 120GB SATA SSD in caddy bay #1 (via HBA, `/var` moved to `/home` for space)
+  - Data: 480GB NVMe (Docker data root at /mnt/nvme/docker)
+  - Hot-swap: 24× 2.5" bays available
+- Docker: v29.0.4, Portainer at https://192.168.1.11:9443
+- IPMI: Accessible, credentials reset, fan mode "Optimal"
+- Status: **Production** - 10 services migrated and running
+- Notes: See `docs/homelab/homelab.md` §2 and `docs/homelab/narsis-migration.md`
+
+**Workstation: `Almalexia`**
+- OS: OpenSUSE Tumbleweed
+- IP: 192.168.1.20 (static DHCP reservation)
+- Shell: zsh with Starship prompt (Catppuccin theme)
+- Terminal: Ghostty (JetBrains Mono Nerd Font)
+- Desktop: Hyprland (Wayland, primary) / Plasma (secondary)
+- Role: Development machine, config editing, remote management
+
+### Network Architecture
+
+**LAN:** 192.168.1.0/24
+- Gateway: TP-Link Archer AX55 Pro (192.168.1.1)
+- DNS: AdGuard Home on clockworkcity (192.168.1.10)
+- Printer: Epson L3270 (192.168.1.201)
+
+**Access Control:**
+- Default: LAN + Tailscale only (private-by-default)
+- Reverse Proxy: Caddy with Cloudflare DNS-01 ACME
+- All services: `https://<subdomain>.rabalski.eu`
+- DNS Split-Horizon:
+  - Public: Cloudflare authoritative
+  - Internal: AdGuard rewrites `*.rabalski.eu` → 192.168.1.10
+
+**Docker Networking:**
+- External network: `caddy_net` (must exist, created manually)
+- All web services connect to `caddy_net` for Caddy reverse proxy access
+
+---
+
+## Repository Structure
+
+```
+aiTools/
+├── stacks/                          # Docker Compose services (GitOps ready)
+│   ├── caddy/                       # Reverse proxy (Cloudflare DNS plugin)
+│   ├── homeassistant/               # Home automation (Zigbee via SONOFF dongle)
+│   ├── vaultwarden/                 # Password manager
+│   ├── n8n/                         # Workflow automation
+│   ├── adguardhome/                 # DNS + ad blocking
+│   ├── net_monitor/                 # Prometheus + Grafana + Blackbox
+│   ├── portainer/                   # Container management
+│   ├── searxng/                     # Metasearch engine
+│   ├── neko/                        # Browser isolation (Firefox)
+│   ├── changedetection/             # Website monitoring
+│   ├── glance/                      # Dashboard
+│   ├── dumbpad/                     # Note-taking
+│   ├── marreta/                     # (Service TBD)
+│   ├── speedtest-tracker/           # Internet speed monitoring
+│   ├── browser-services/            # Browser-related services
+│   └── tailscale/                   # VPN configs (systemd, not containerized)
+│
+├── docs/                            # Documentation hub
+│   ├── homelab/
+│   │   └── homelab.md              # **PRIMARY REFERENCE** - Complete architecture
+│   ├── guides/
+│   │   ├── GETTING_STARTED.md      # Quick start guide
+│   │   ├── SERVICE_INVENTORY.md    # Service catalog
+│   │   └── HYPRPANEL_SETUP.md      # Desktop environment setup
+│   ├── deployment.md                # Stack deployment via Portainer
+│   ├── portainer-setup.md           # Git integration configuration
+│   ├── disaster-recovery.md         # Complete rebuild procedures
+│   ├── migration-tracker.md         # Service migration status
+│   ├── pre-migration-checklist.md   # Migration planning
+│   ├── n8n-migration-test.md        # Test case documentation
+│   └── service-clarifications.md    # Service-specific notes
+│
+├── workspace/                       # AI conversation logs (topic-based)
+│   ├── homelab/
+│   │   └── conversations/           # Homelab setup discussions
+│   ├── gitops/
+│   │   └── conversations/           # GitOps migration planning
+│   ├── linux_desktop/               # Desktop environment work
+│   └── example_topic/               # Template structure
+│
+├── config/                          # Desktop configurations & secrets
+│   ├── .secrets-templates/          # Template for secrets management
+│   └── (configs to be organized)
+│
+├── archive/                         # Deprecated/old files
+│
+├── scripts/                         # Automation scripts
+│
+├── README.md                        # Project README (GitOps overview)
+└── CLAUDE.md                        # This file
+```
+
+---
 
 ## Key Architecture Principles
 
-### Homelab Infrastructure
+### Homelab Services
 
-**Network Model:**
-- Single entrypoint via Caddy reverse proxy with Cloudflare DNS-01 ACME
-- Private-by-default: LAN (192.168.1.0/24) + Tailscale (100.64.0.0/10) only
-- DNS split-horizon: Cloudflare (public) + AdGuard Home (internal rewrites)
-- All services on shared Docker network `caddy_net` (must be created externally)
+**Deployment Model:**
+- **GitOps**: Portainer pulls from Git repository
+- **Secrets**: Separate management (never committed)
+- **Networking**: All services on `caddy_net`, proxied via Caddy
+- **DNS**: Internal AdGuard rewrites for LAN access
+- **TLS**: Let's Encrypt via Cloudflare DNS-01 (wildcard *.rabalski.eu)
 
-**Data Separation:**
-- Configs: version-controlled in `homelabbing/configs/<service>/`, synced to server
-- Runtime: deployed to `~/caddy/`, `/opt/<service>/`, or `/mnt/` on `clockworkcity`
-- Secrets: `.env` files on server (never committed)
+**Service Pattern:**
+```yaml
+services:
+  service-name:
+    image: ...
+    container_name: service-name
+    restart: unless-stopped
+    volumes:
+      - /opt/service-name/config:/config  # Persistent config
+    networks:
+      - caddy_net
+    environment:
+      # From .env or Portainer environment variables
 
-**Service Architecture:**
-- Caddy custom build with Cloudflare DNS plugin (see Dockerfile pattern)
-- Services compose files assume `caddy_net` network exists
-- Nextcloud AIO runs on host port 12000 (proxied to `cloud.rabalski.eu`)
-- Each service mounts config from `/opt/<name>/config` → `/config` in container
+networks:
+  caddy_net:
+    external: true  # Pre-created, shared across all services
+```
 
-### Development Environment
+**Caddy Reverse Proxy:**
+- Custom build with Cloudflare DNS plugin (see `stacks/caddy/Dockerfile`)
+- Gate matcher: Only allow LAN (192.168.1.0/24, 192.168.0.0/24) + Tailscale (100.64.0.0/10)
+- Each service gets vhost block in Caddyfile
+- Reload without restart: `docker exec caddy caddy reload --config /etc/caddy/Caddyfile`
 
-**Main PC (`Almalexia`):**
-- OS: OpenSUSE Tumbleweed
-- Shell: `zsh`
-- Terminal: `ghostty`
-- Primary DE: Hyprland (Wayland) - config at `linux/configs/hyprland/`
-- Secondary DE: Plasma (Wayland)
+### Desktop Environment (Almalexia)
 
-**Important**: Files in `aiTools` are a **staging repository** for AI agents to edit. Changes must be deployed to actual locations:
-- Homelab configs: sync from `homelabbing/configs/` to server locations
-- Linux configs: sync from `linux/configs/` to local system paths (e.g., `~/.config/`)
+**Configuration Sync:**
+- Source: `config/` directory in this repo (to be organized)
+- Target: System paths (`~/.config/hypr/`, etc.)
+- Method: `rsync` for manual sync or direct editing
 
-## Common Commands
+**Development Workflow:**
+1. Edit configs in repo
+2. Test locally or sync to server
+3. Commit changes
+4. Push to GitHub (for Portainer auto-deployment)
 
-### Homelab - Caddy Operations
+---
+
+## Active Services
+
+All accessible via `https://<subdomain>.rabalski.eu` (LAN + Tailscale only):
+
+| Service | Subdomain | Container | Purpose | Status |
+|---------|-----------|-----------|---------|--------|
+| **Critical Infrastructure** |
+| Caddy | N/A | `caddy` | Reverse proxy (all HTTPS) | Production |
+| Portainer | `portainer` | `portainer` | Container management | Production |
+| AdGuard Home | `sink` | `adguard` | DNS + ad blocking | Production |
+| **Home & Productivity** |
+| Home Assistant | `dom` | `homeassistant` | Home automation (Zigbee) | Production |
+| Vaultwarden | `21376942` | `vaultwarden` | Password manager | Production |
+| Nextcloud AIO | `cloud` | Host:12000 | File sync (AIO model) | Production |
+| n8n | `n8n` | `n8n` | Workflow automation | Production |
+| **Monitoring & Tools** |
+| Prometheus | `prometheus` | `prometheus` | Metrics collection | Production |
+| Grafana | `grafana` | `grafana` | Metrics visualization | Production |
+| Blackbox Exporter | N/A | `blackbox` | Network probing | Production |
+| Speedtest Tracker | `speedtest` | `speedtest-tracker` | Speed monitoring | Production |
+| Changedetection.io | `watch` | `changedetection` | Website monitoring | Production |
+| **Utilities** |
+| SearXNG | `search` | `searxng` | Metasearch engine | Production |
+| Glance | `deck` | `glance` | Dashboard | Production |
+| n.eko | `kicia` | `neko` | Browser isolation (Firefox) | Production |
+| Dumbpad | `pad` | `dumbpad` | Note-taking | Production |
+| Marreta | `ram` | `marreta` | (TBD) | Production |
+
+**Infrastructure Services (Non-Containerized):**
+- Tailscale: systemd service (VPN overlay network)
+
+---
+
+## Primary Documentation Reference
+
+**For all homelab questions, consult first:**
+- **File**: `docs/homelab/homelab.md`
+- **Size**: ~85KB, comprehensive
+- **Contains**:
+  - Complete network topology
+  - Service catalog with domains
+  - Data layout and storage strategy
+  - Runbooks for common operations
+  - Docker Compose library (canonical patterns)
+  - Migration plans to Supermicro platform
+  - Security model and access control
+  - Disaster recovery procedures
+  - Caddyfile reference
+
+**Other Key Documentation:**
+- `stacks/*/README.md` - Service-specific deployment notes
+- `docs/deployment.md` - Portainer Git deployment walkthrough
+- `docs/migration-tracker.md` - Service migration status
+- `docs/disaster-recovery.md` - Full rebuild procedures
+
+---
+
+## Common Workflows
+
+### Deploying New Service via Portainer Git
+
+1. **Create stack directory**: `stacks/SERVICE_NAME/`
+2. **Add compose file**: `docker-compose.yml` with `caddy_net` network
+3. **Create env template**: `.env.template` for required variables
+4. **Add Caddy vhost**: Edit `stacks/caddy/Caddyfile`, add service block with `import gate`
+5. **Commit and push**: `git add . && git commit && git push`
+6. **Deploy in Portainer**:
+   - Stacks → Add Stack → Repository
+   - URL: GitHub repo URL
+   - Compose path: `stacks/SERVICE_NAME/docker-compose.yml`
+   - Add environment variables
+   - Enable auto-sync (optional)
+7. **Add DNS rewrite**: AdGuard Home: `<service>.rabalski.eu` → `192.168.1.10`
+8. **Validate**: `curl -I https://<service>.rabalski.eu` from LAN
+
+### Updating Existing Service
+
+**With Git auto-sync:**
+```bash
+# Edit locally
+vim stacks/SERVICE_NAME/docker-compose.yml
+
+# Commit and push
+git add stacks/SERVICE_NAME/
+git commit -m "Update SERVICE_NAME: description"
+git push
+
+# Portainer auto-deploys (if webhook configured)
+```
+
+**Manual trigger:**
+- Push changes to GitHub
+- Portainer → Stack → Pull and redeploy
+
+### Caddy Operations
 
 ```bash
-# From repo: sync configs to server
-rsync -av homelabbing/configs/caddy/ user@clockworkcity:~/caddy/
-
-# On server: rebuild Caddy with Cloudflare plugin
-cd ~/caddy
-mkdir -p .docker
-DOCKER_CONFIG=$PWD/.docker docker compose build --pull --no-cache
-docker compose up -d
-
-# Validate and reload Caddyfile after changes
+# Reload Caddyfile after edits (no downtime)
 docker exec caddy caddy validate --config /etc/caddy/Caddyfile
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
-# Verify Cloudflare DNS plugin is loaded
-docker exec caddy caddy list-modules | grep -i dns.providers.cloudflare
+# Verify Cloudflare plugin loaded
+docker exec caddy caddy list-modules | grep dns.providers.cloudflare
+
+# View recent logs
+docker logs caddy --since 60s
+
+# Rebuild after Dockerfile changes
+cd ~/caddy  # on clockworkcity
+mkdir -p .docker
+DOCKER_CONFIG=$PWD/.docker docker compose build --pull --no-cache
+docker compose up -d
 ```
 
-### Homelab - Adding New Services
-
-1. Create compose file in `homelabbing/configs/<service>/docker-compose.yml`
-2. Ensure service network includes `caddy_net: external: true`
-3. Add vhost block to `homelabbing/configs/caddy/Caddyfile` with `import gate`
-4. Sync Caddyfile to server and reload Caddy
-5. Add AdGuard rewrite: `<service>.rabalski.eu` → `192.168.1.10`
-6. Test from LAN client: `curl -I https://<service>.rabalski.eu`
-
-### Homelab - Tailscale Management
+### Tailscale Management
 
 ```bash
-# Check Tailscale status
+# Check status
 tailscale status --self
 
 # Fix connectivity issues (clean re-login)
@@ -85,189 +309,238 @@ sudo tailscale logout
 sudo systemctl restart tailscaled
 sudo tailscale up --accept-dns=true --accept-routes=true
 
-# If CLI hangs, restart daemon
-sudo systemctl restart tailscaled
-
-# Apply stabilization config (systemd override + health timer)
-# Source files in homelabbing/configs/tailscale/
-sudo cp homelabbing/configs/tailscale/tailscaled.service.d/override.conf /etc/systemd/system/tailscaled.service.d/
-sudo install -m 0755 homelabbing/configs/tailscale/tailscale-healthcheck.sh /usr/local/bin/
-sudo install -m 0644 homelabbing/configs/tailscale/tailscale-health.* /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now tailscale-health.timer
+# Apply stability config (if not already done)
+# See docs/homelab/homelab.md §9.4a for systemd override + health timer
 ```
 
-### Homelab - Docker Network Setup
-
-```bash
-# Create the required external network (run once)
-docker network create caddy_net
-```
-
-### Linux Desktop - Deploy Config Changes
-
-```bash
-# Hyprland configuration
-rsync -av /home/kuba/aiTools/linux/configs/hyprland/ ~/.config/hypr/
-hyprctl reload
-
-# Other configs follow similar pattern:
-# rsync -av /home/kuba/aiTools/linux/configs/<name>/ <destination>/
-```
-
-### Homelab - Service Health Checks
+### Network Diagnostics
 
 ```bash
 # Check what's listening on 443
 sudo ss -tnlp | grep ':443'
 
-# Recent Caddy logs
-docker logs caddy --since 60s
+# DNS resolution test (internal)
+nslookup service.rabalski.eu 192.168.1.10
 
-# Test site from client
-curl -I https://<site>.rabalski.eu
+# Test from LAN client
+curl -I https://service.rabalski.eu
 
-# DNS resolution inside Caddy network
-docker exec -it caddy getent hosts <container-name>
-
-# Verify DNS rewrite (from LAN client)
-nslookup <host>.rabalski.eu 192.168.1.10
+# Container DNS resolution
+docker exec -it caddy getent hosts container-name
 ```
 
-## Repository Structure
-
-```
-aiTools/
-├── homelabbing/
-│   ├── homelab.md              # Complete homelab architecture & runbooks
-│   ├── configs/
-│   │   ├── caddy/              # Reverse proxy (Dockerfile + Caddyfile)
-│   │   ├── net_monitor/        # Prometheus + Grafana + Blackbox
-│   │   ├── portainer/          # Container management
-│   │   ├── tailscale/          # VPN systemd hardening
-│   │   └── n8n/                # Workflow automation
-│   └── convos/                 # AI conversation logs for service setups
-├── linux/configs/
-│   ├── hyprland/               # Wayland compositor config
-│   └── nvim/                   # Editor documentation
-└── ai_workspace/               # Session-based AI discussions
-```
-
-## Important Files
-
-- `homelabbing/homelab.md`: Authoritative architecture document (25KB) - consult this for all homelab questions
-- `homelabbing/configs/caddy/Caddyfile`: Reverse proxy configuration with all service definitions
-- `homelabbing/configs/caddy/README.md`: Caddy deployment workflow
-- `homelabbing/configs/net_monitor/README.md`: Network monitoring stack guide
-
-## Workflow Patterns
-
-### Config Changes Workflow
-
-1. **Edit** configs in repository (`homelabbing/configs/<service>/`)
-2. **Sync** to server via `rsync` or `scp`
-3. **Apply** changes (rebuild, reload, or restart as needed)
-4. **Validate** via logs and health checks
-
-### Secret Management
-
-- **Never commit** `.env` files
-- Secrets live on server in service directories
-- Required vars documented in service READMEs
-- Caddy needs: `CF_API_TOKEN` (Cloudflare API token with Zone:Read + DNS:Edit)
-
-### Service Deployment Pattern
-
-All services follow this compose template:
-```yaml
-services:
-  <name>:
-    image: <image>
-    container_name: <name>
-    restart: unless-stopped
-    volumes:
-      - /opt/<name>/config:/config  # persistent config
-    networks:
-      - caddy_net
-
-networks:
-  caddy_net:
-    external: true  # created once, shared by all services
-```
+---
 
 ## Special Considerations
 
 ### Caddy Custom Build
-
-Caddy uses a **custom Dockerfile** that downloads the official binary with the Cloudflare DNS plugin pre-bundled. Changes to `Caddyfile` require only reload; changes to `Dockerfile` or plugin dependencies require rebuild.
+- Uses Dockerfile that downloads Caddy binary with Cloudflare DNS plugin
+- Changes to Caddyfile: reload only
+- Changes to Dockerfile: full rebuild required
+- Source: `stacks/caddy/Dockerfile`
 
 ### Nextcloud AIO
-
-Nextcloud runs via AIO mastercontainer, **not** as a standard compose service. Data lives on dedicated SSD at `/mnt/ncdata`. Caddy proxies to `http://host.docker.internal:12000`.
+- Managed by AIO mastercontainer (not standard compose)
+- Data: Dedicated SSD at `/mnt/ncdata` on clockworkcity
+- Caddy proxies: `cloud.rabalski.eu` → `http://host.docker.internal:12000`
+- Do not manage via standard stack patterns
 
 ### Network Monitoring Stack
+- Deployed via Portainer stack
+- Uses Docker bind-mounts from `/srv/configs/net_monitor` (on server)
+- Prometheus file_sd: Drop targets in `file_sd/*.yml` for auto-discovery
+- Dashboards: Grafana provisioned from `grafana/dashboards/`
+- Comprehensive guides: `stacks/net_monitor/*.md`
 
-Deployed via Portainer stack. Configuration files use Docker bind-mounts from `/srv/configs/net_monitor`. Prometheus watches target files in `file_sd/` directories for automatic discovery (no restart needed).
+### Media Server (narsis) Setup Notes
+- BIOS: Latest version 3.4 (does not support NVMe boot)
+- Boot: SATA SSD in caddy bay #1, HBA boot support "BIOS and OS"
+- Fans: Replaced server fans with Arctic P8, IPMI fan mode set to "Optimal"
+- NVMe: Formatted ext4, mounted at `/mnt/nvme`, available for Docker/data
+- IPMI: Web accessible, credentials reset via `ipmitool`
+- Shell: zsh with Starship (Catppuccin Macchiato)
+- See: `docs/homelab/homelab.md` §2 "Media Server Boot & Access Notes"
 
 ### Tailscale Stability
+- clockworkcity uses systemd overrides + health-check timer
+- Prevents daemon hangs, auto-restarts if offline
+- Config files: `stacks/tailscale/` (deploy to `/etc/systemd/system/`)
 
-`clockworkcity` uses systemd overrides and a health-check timer to prevent Tailscale daemon hangs. Config files in `homelabbing/configs/tailscale/` must be deployed to `/etc/systemd/system/` and `/usr/local/bin/`.
+---
 
-## Key Documentation Reference
+## AI Workspace Structure
 
-For detailed homelab operations, troubleshooting, service catalog, data layout, Caddyfile syntax, migration planning, and security model - **always consult `homelabbing/homelab.md`** first. It contains:
-- Network topology and addressing
-- DNS model (split-horizon)
-- Complete service catalog with domains
-- Docker Compose library for all services
-- Runbooks for common operations
-- Disaster recovery procedures
-- Migration plan to Supermicro platform
+**Purpose**: Track AI-assisted conversations by topic
 
-## Static IP Assignments (Router DHCP)
+**Pattern**:
+```
+workspace/TOPIC_NAME/
+├── conversations/
+│   └── YYYY-MM-DD_description.md   # Timestamped discussion logs
+├── TOPIC_OVERVIEW.md               # Topic summary (optional)
+└── outputs/                        # Generated files (optional)
+```
 
-- `clockworkcity` (server): `192.168.1.10`
-- `Almalexia` (main PC): `192.168.1.20`
-- `EPSONB2S2E9` (printer): `192.168.1.201`
-- `MikroTik` (router): `192.168.1.2`
+**Active Topics**:
+- `homelab/` - Service setup, troubleshooting, architecture
+- `gitops/` - Migration to GitOps model
+- `linux_desktop/` - Hyprland/Plasma configuration
+- `example_topic/` - Template for new topics
 
-## Active Services (on clockworkcity)
+---
 
-All accessible via `https://<subdomain>.rabalski.eu`:
-- `dom` - Home Assistant (Zigbee via SONOFF dongle)
-- `21376942` - Vaultwarden (password manager)
-- `search` - SearXNG (metasearch)
-- `cloud` - Nextcloud AIO
-- `portainer` - Portainer CE
-- `sink` - AdGuard Home
-- `kicia` - n.eko (Firefox WebRTC)
-- `watch` - changedetection.io
-- `deck` - Glance dashboard
-- `ram` - Marreta
-- `pad` - Dumbpad
-- `speedtest` - Speedtest-Tracker
-- configuration.yaml:
+## Secrets Management
 
- Loads default set of integrations. Do not remove.
-default_config:
+**Policy**: Secrets NEVER committed to this repository
 
-# Load frontend themes from the themes folder
-frontend:
-  themes: !include_dir_merge_named themes
+**Structure**:
+- `.env.template` files document required variables
+- Actual secrets: Separate private repo or Portainer environment variables
+- Git ignores: `**/.env`, `*.key`, `*.pem`, `**/secrets/`
 
-automation: !include automations.yaml
-script: !include scripts.yaml
-scene: !include scenes.yaml
-http:
-    use_x_forwarded_for: true
-    trusted_proxies:
-      - 172.16.0.0/12
-      - 127.0.0.1
-      - ::1
+**Required Secrets**:
+- `CF_API_TOKEN`: Cloudflare API token (Zone:Read + DNS:Edit) for Caddy ACME
+- Service-specific: See each stack's `.env.template`
 
-Yet, 400 error is still here, latest logs:
+---
 
-2025-11-16 21:39:52.561 ERROR (MainThread) [homeassistant.components.http.forwarded] Invalid IP address in X-Forwarded-For: {remote_ip}
-2025-11-16 21:39:53.576 ERROR (MainThread) [homeassistant.components.http.forwarded] Invalid IP address in X-Forwarded-For: {remote_ip}
-2025-11-16 21:41:43.748 ERROR (MainThread) [homeassistant.components.http.forwarded] Invalid IP address in X-Forwarded-For: {remote_ip}
-2025-11-16 21:41:44.762 ERROR (MainThread) [homeassistant.components.http.forwarded] Invalid IP address in X-Forwarded-For: {remote_ip}
+## Migration Status
+
+**Current Phase**: Phase 1-3 complete (2025-11-26)
+
+**Completed**:
+1. ✅ Repository published to GitHub (https://github.com/JakuRab/homelab-infrastructure)
+2. ✅ Portainer Git integration tested and working
+3. ✅ 10 services migrated to narsis via GitOps deployment
+4. ✅ narsis joined to Tailscale network
+5. ✅ Infrastructure issues resolved (disk space, permissions, compatibility)
+
+**In Progress**:
+- Planning Home Assistant migration (USB device passthrough)
+- Planning Vaultwarden migration (critical data backup strategy)
+
+**Next Steps**:
+1. Migrate Home Assistant (requires Zigbee USB passthrough configuration)
+2. Migrate Vaultwarden (password manager - thorough testing required)
+3. Plan media services (Plex, Jellyfin) for narsis
+4. Evaluate ZFS setup for narsis bulk storage
+
+**Documentation**:
+- `docs/homelab/narsis-migration.md` - Detailed migration log (2025-11-26)
+- `docs/homelab/homelab.md` §15.7 - Migration summary
+- `docs/migration-tracker.md` - Ongoing status tracking
+
+---
+
+## Static IP Assignments
+
+**DHCP Reservations on TP-Link Archer (192.168.1.1)**:
+- `192.168.1.10` - clockworkcity (server)
+- `192.168.1.11` - narsis (media server)
+- `192.168.1.20` - Almalexia (workstation)
+- `192.168.1.201` - EPSONB2S2E9 (printer)
+- `192.168.1.2` - MikroTik (secondary router, if active)
+
+---
+
+## Quick Reference Commands
+
+### Docker Network Setup
+```bash
+# Create caddy_net (run once per server)
+docker network create caddy_net
+```
+
+### Service Health Checks
+```bash
+# List all containers
+docker ps -a
+
+# Service logs
+docker logs <container-name> --since 60s
+
+# Follow logs
+docker logs -f <container-name>
+
+# Restart service
+docker restart <container-name>
+```
+
+### System Updates
+```bash
+# Almalexia (OpenSUSE)
+sudo zypper dup
+
+# clockworkcity / narsis (Debian/Ubuntu)
+sudo apt update && sudo apt upgrade -y
+```
+
+### narsis Quick Access
+```bash
+# SSH from Almalexia
+ssh athires@192.168.1.11
+# or
+ssh athires@narsis  # if DNS configured
+
+# IPMI web interface
+# Check router for IPMI port IP, or configure static DHCP reservation
+```
+
+---
+
+## Development Environment
+
+**Almalexia Configuration**:
+- Font: JetBrains Mono Nerd Font (for icon support)
+- Prompt: Starship with Catppuccin theme
+- SSH config: `~/.ssh/config` with TERM override for server compatibility
+- Workflow: Edit → Test → Commit → Push → Portainer deploys
+
+**Server Access**:
+- SSH keys preferred (password fallback available)
+- Ghostty terminal with proper TERM setting (`xterm-256color`)
+- Multi-pane tmux/screen for parallel tasks (optional)
+
+---
+
+## Troubleshooting Quick Links
+
+**Homelab Issues**:
+1. Check `docs/homelab/homelab.md` §9-12 (Runbooks, Monitoring, Disaster Recovery)
+2. Service-specific: `stacks/SERVICE_NAME/README.md`
+3. Network monitoring: `stacks/net_monitor/TROUBLESHOOTING.md`
+
+**Common Issues**:
+- **Caddy not starting**: Check CF_API_TOKEN env var, validate Caddyfile
+- **Service unreachable**: Verify DNS rewrite, check Caddy logs, test container networking
+- **Tailscale offline**: See §9.4a-b in homelab.md for stability fixes
+- **Portainer won't deploy**: Check compose syntax, verify caddy_net exists, review environment variables
+
+---
+
+## Additional Notes
+
+**Repository Maintenance**:
+- This file (`CLAUDE.md`) should be updated when:
+  - New services are added
+  - Infrastructure changes (new servers, IP changes)
+  - Workflow patterns evolve
+  - Major documentation restructuring
+
+**Best Practices**:
+- Always consult `docs/homelab/homelab.md` before making infrastructure changes
+- Test changes in staging/local before deploying to production
+- Document significant changes in workspace conversations
+- Keep `.env.template` files updated with new requirements
+
+---
+
+**Last Updated**: 2025-11-26
+**Maintainer**: Kuba Rabalski
+**Primary Reference**: `docs/homelab/homelab.md`
+
+**Recent Changes** (2025-11-26):
+- Updated narsis status to Production with 10 migrated services
+- Added Tailscale network information for narsis
+- Updated migration status to reflect Phase 1-3 completion
+- Added reference to narsis-migration.md documentation
