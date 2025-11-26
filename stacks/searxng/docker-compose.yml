@@ -6,8 +6,10 @@ services:
     environment:
       - SEARXNG_BASE_URL=https://search.rabalski.eu/
       - SEARXNG_SECRET=${SEARXNG_SECRET:-}
+    ports:
+      - "8081:8080"
     volumes:
-      - /home/sothasil/searxng/searxng:/etc/searxng:rw
+      - /mnt/nvme/services/searxng/config:/etc/searxng:rw
     labels:
       - "glance.name=SearXNG"
       - "glance.icon=si:searxng"
