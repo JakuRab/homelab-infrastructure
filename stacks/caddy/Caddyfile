@@ -233,7 +233,7 @@ n8n.rabalski.eu {
   tls {
     dns cloudflare {env.CF_API_TOKEN}
   }
-  reverse_proxy http://n8n:5678 {
+  reverse_proxy http://192.168.1.11:5678 {
     transport http {
       dial_timeout 10s
       response_header_timeout 2m
