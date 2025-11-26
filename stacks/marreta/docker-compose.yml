@@ -3,11 +3,13 @@ services:
     image: ghcr.io/manualdousuario/marreta:latest
     container_name: marreta
     restart: unless-stopped
+    ports:
+      - "80:80"
     environment:
       - SITE_URL=https://ram.rabalski.eu
       - SITE_NAME=Marreta
       - SITE_DESCRIPTION=Clean reading, fewer blockers
-      - SELENIUM_HOST=selenium-hub:4444
+      - SELENIUM_HOST=192.168.1.11:4444
       - DNS_SERVERS=1.1.1.1,8.8.8.8
       - LOG_LEVEL=WARNING
       - LANGUAGE=en

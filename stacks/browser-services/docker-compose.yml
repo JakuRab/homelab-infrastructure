@@ -3,6 +3,8 @@ services:
     image: selenium/hub:4.27.0-20241204
     container_name: selenium-hub
     restart: unless-stopped
+    ports:
+      - "4444:4444"
     environment:
       - GRID_MAX_SESSION=10
       - GRID_BROWSER_TIMEOUT=10
