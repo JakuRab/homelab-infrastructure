@@ -11,8 +11,9 @@ services:
       - NEKO_EPR=52000-52100
       - NEKO_TCPMUX=52100
       - NEKO_ICELITE=true
-      - NEKO_NAT1TO1=31.178.229.212
+      - NEKO_NAT1TO1=${NEKO_NAT1TO1}
     ports:
+      - "8082:8080"
       - "52000-52100:52000-52100/udp"
       - "52100:52100/tcp"
     labels:
