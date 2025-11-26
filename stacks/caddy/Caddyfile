@@ -158,7 +158,7 @@ deck.rabalski.eu {
 ram.rabalski.eu {
   import gate
   encode zstd gzip
-  reverse_proxy http://marreta:80
+  reverse_proxy http://192.168.1.11:80
 }
 
 # ===========================
