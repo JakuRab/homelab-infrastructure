@@ -187,7 +187,7 @@ speedtest.rabalski.eu {
     Referrer-Policy "strict-origin-when-cross-origin"
     X-Frame-Options "SAMEORIGIN"
   }
-  reverse_proxy http://speedtest-tracker:80 {
+  reverse_proxy http://192.168.1.11:8888 {
     transport http {
       dial_timeout 10s
       response_header_timeout 2m
