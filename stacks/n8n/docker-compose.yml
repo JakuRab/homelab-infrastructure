@@ -5,6 +5,8 @@ services:
     image: n8nio/n8n
     container_name: n8n
     restart: unless-stopped
+    ports:
+      - "5678:5678"
     environment:
       - GENERIC_TIMEZONE=Europe/Warsaw
       - N8N_HOST=n8n.rabalski.eu
@@ -21,7 +23,7 @@ services:
       - "glance.url=https://n8n.rabalski.eu"
       - "glance.description=Workflow Automation"
     volumes:
-      - /opt/n8n/data:/home/node/.n8n
+      - /mnt/nvme/services/n8n/data:/home/node/.n8n
     networks:
       - caddy_net
 
