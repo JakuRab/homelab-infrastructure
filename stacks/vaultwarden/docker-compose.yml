@@ -15,7 +15,9 @@ services:
       # - SMTP_USERNAME=${SMTP_USERNAME}
       # - SMTP_PASSWORD=${SMTP_PASSWORD}
     volumes:
-      - /home/sothasil/vaultwarden/data:/data
+      - /mnt/nvme/services/vaultwarden/data:/data
+    ports:
+      - "8090:80"  # Expose port for narsis deployment
     labels:
       - "glance.name=Vaultwarden"
       - "glance.icon=si:bitwarden"
