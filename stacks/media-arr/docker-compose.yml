@@ -1,0 +1,90 @@
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme/services/media/config/prowlarr:/config
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "description=Prowlarr indexer manager for arr stack"
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme/services/media/config/radarr:/config
+      - /mnt/nvme/services/media/media/movies:/movies
+      - /mnt/nvme/services/media/downloads:/downloads
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "description=Radarr movie collection manager"
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme/services/media/config/sonarr:/config
+      - /mnt/nvme/services/media/media/tv:/tv
+      - /mnt/nvme/services/media/downloads:/downloads
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "description=Sonarr TV show collection manager"
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme/services/media/config/lidarr:/config
+      - /mnt/nvme/services/media/media/music:/music
+      - /mnt/nvme/services/media/downloads:/downloads
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "description=Lidarr music collection manager"
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=${TZ}
+    networks:
+      - media_net
+    labels:
+      - "description=FlareSolverr Cloudflare bypass for indexers"
+
+networks:
+  caddy_net:
+    external: true
+  media_net:
+    external: true

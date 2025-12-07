@@ -1,0 +1,64 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "8080:8080"   # qBittorrent Web UI
+      - "8888:8888"   # Gluetun HTTP proxy
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_COUNTRIES=${VPN_SERVER_COUNTRIES}
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_PROVIDER=protonvpn
+      - FIREWALL_VPN_INPUT_PORTS=${QBITTORRENT_PORT}
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - /mnt/nvme/services/media/config/gluetun:/gluetun
+    networks:
+      - caddy_net
+      - media_net
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "https://api.ipify.org"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    network_mode: service:gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    volumes:
+      - /mnt/nvme/services/media/config/qbittorrent:/config
+      - /mnt/nvme/services/media/downloads:/downloads
+    labels:
+      - "description=qBittorrent torrent client (routed through Gluetun VPN)"
+
+networks:
+  caddy_net:
+    external: true
+  media_net:
+    external: true

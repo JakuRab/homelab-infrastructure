@@ -1,0 +1,57 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TZ}
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_URL}
+    volumes:
+      - /mnt/nvme/services/media/config/jellyfin:/config
+      - /mnt/nvme/services/media/config/jellyfin/cache:/cache
+      - /mnt/nvme/services/media/media/movies:/media/movies:ro
+      - /mnt/nvme/services/media/media/tv:/media/tv:ro
+      - /mnt/nvme/services/media/media/music:/media/music:ro
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "description=Jellyfin media server"
+    # Uncomment when Quadro GPU is installed:
+    # devices:
+    #   - /dev/dri:/dev/dri
+    # For NVIDIA GPU, also add:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    environment:
+      - ND_SCANSCHEDULE=${NAVIDROME_SCAN_SCHEDULE}
+      - ND_LOGLEVEL=${NAVIDROME_LOG_LEVEL}
+      - ND_SESSIONTIMEOUT=${NAVIDROME_SESSION_TIMEOUT}
+      - ND_BASEURL=${NAVIDROME_BASE_URL}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme/services/media/config/navidrome:/data
+      - /mnt/nvme/services/media/media/music:/music:ro
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "description=Navidrome music streaming server"
+
+networks:
+  caddy_net:
+    external: true
+  media_net:
+    external: true
