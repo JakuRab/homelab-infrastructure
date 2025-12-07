@@ -60,7 +60,7 @@ cloud.rabalski.eu {
   import gate
   encode zstd gzip
 
-  reverse_proxy http://host.docker.internal:12000 {
+  reverse_proxy http://192.168.1.11:12000 {
     # usuń odziedziczone i ustaw poprawne nagłówki do backendu
     header_up -X-Forwarded-For
     header_up X-Forwarded-For  {remote_ip}
