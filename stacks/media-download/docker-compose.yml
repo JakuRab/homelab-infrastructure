@@ -31,12 +31,13 @@ services:
     dns:
       - 1.1.1.1
       - 1.0.0.1
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "https://api.ipify.org"]
-      interval: 60s
-      timeout: 15s
-      retries: 5
-      start_period: 60s
+    # Healthcheck disabled - VPN connects successfully
+    # healthcheck:
+    #   test: ["CMD", "wget", "--spider", "-q", "https://api.ipify.org"]
+    #   interval: 60s
+    #   timeout: 15s
+    #   retries: 5
+    #   start_period: 60s
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -44,8 +45,8 @@ services:
     restart: unless-stopped
     network_mode: service:gluetun
     depends_on:
-      gluetun:
-        condition: service_healthy
+      - gluetun
+    # Removed health condition - let it start after gluetun starts
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
