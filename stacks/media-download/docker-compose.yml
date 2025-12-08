@@ -9,7 +9,7 @@ services:
       - /dev/net/tun:/dev/net/tun
     ports:
       - "8083:8080"   # qBittorrent Web UI (external:internal)
-      - "8888:8888"   # Gluetun HTTP proxy
+      - "8889:8888"   # Gluetun HTTP proxy (external:internal)
     environment:
       - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=wireguard
