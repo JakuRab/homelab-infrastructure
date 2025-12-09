@@ -3,6 +3,9 @@
   email jakurb@rabalski.eu
   # Enable verbose logs while diagnosing
   debug
+
+  # Use Cloudflare DNS-01 challenge (works behind firewall)
+  acme_dns cloudflare {env.CF_API_TOKEN}
 }
 
 # --- wspólny filtr: tylko LAN + Tailscale ---
@@ -260,5 +263,93 @@ dom.rabalski.eu {
     Referrer-Policy "no-referrer-when-downgrade"
     X-Content-Type-Options "nosniff"
     X-Frame-Options "SAMEORIGIN"
+  }
+}
+
+# ===========================
+# qBittorrent (Download Client)
+# ===========================
+qbit.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://192.168.1.11:8083
+}
+
+# ===========================
+# Prowlarr (Indexer Manager)
+# ===========================
+prowlarr.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://192.168.1.11:9696
+}
+
+# ===========================
+# Radarr (Movie Manager)
+# ===========================
+radarr.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://192.168.1.11:7878
+}
+
+# ===========================
+# Sonarr (TV Show Manager)
+# ===========================
+sonarr.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://192.168.1.11:8989
+}
+
+# ===========================
+# Lidarr (Music Manager)
+# ===========================
+lidarr.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://192.168.1.11:8686
+}
+
+# ===========================
+# Jellyfin (Media Server)
+# ===========================
+media.rabalski.eu {
+  import gate
+  encode zstd gzip
+
+  reverse_proxy http://192.168.1.11:8096 {
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+  }
+}
+
+# ===========================
+# Navidrome (Music Streaming)
+# ===========================
+music.rabalski.eu {
+  import gate
+  encode zstd gzip
+
+  reverse_proxy http://192.168.1.11:4533 {
+    header_up -X-Forwarded-For
+    header_up X-Forwarded-For  {remote_ip}
+    header_up X-Real-IP        {remote_ip}
+    header_up X-Forwarded-Proto {scheme}
+    header_up Host             {host}
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
   }
 }
