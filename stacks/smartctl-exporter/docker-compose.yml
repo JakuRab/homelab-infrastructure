@@ -11,12 +11,7 @@ services:
       - "9633:9633"
     devices:
       - /dev:/dev:ro
-    cap_add:
-      - SYS_RAWIO
-      - SYS_ADMIN
-    security_opt:
-      - no-new-privileges:true
-    privileged: false
+    privileged: true
     networks:
       - caddy_net
     labels:
