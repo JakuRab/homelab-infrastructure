@@ -20,8 +20,11 @@ services:
     labels:
       glance.name: "Smartctl Exporter"
       glance.icon: "mdi:harddisk"
+    command:
+      - "--smartctl.device=/dev/sda"
+      - "--smartctl.device=/dev/sdb"
+      - "--smartctl.device=/dev/nvme0"
+      - "--smartctl.interval=60s"
     environment:
-      # Scan interval in seconds (how often to refresh SMART data)
       - SMARTCTL_REFRESH_INTERVAL=60
-      # Scan devices on startup
       - SMARTCTL_SCAN_ON_START=true
