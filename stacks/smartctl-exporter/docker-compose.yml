@@ -10,7 +10,7 @@ services:
     ports:
       - "9633:9633"
     devices:
-      - /dev:/dev:ro
+      - /dev:/dev
     privileged: true
     networks:
       - caddy_net
