@@ -1,0 +1,27 @@
+networks:
+  caddy_net:
+    external: true
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth.*|br.*|docker.*|tailscale.*)$$'
+      - '--collector.netdev.device-exclude=^(veth.*|br.*|docker.*|tailscale.*)$$'
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - caddy_net
+    labels:
+      glance.name: "Node Exporter"
+      glance.icon: "mdi:server-network"

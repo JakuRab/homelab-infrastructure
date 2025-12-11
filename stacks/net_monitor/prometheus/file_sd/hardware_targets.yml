@@ -1,0 +1,19 @@
+# Hardware Monitoring Targets
+#
+# Node Exporter targets (system metrics: CPU, RAM, disk, temps, fans)
+# Add one entry per server
+
+- targets:
+    - '192.168.1.11:9100'  # narsis node-exporter
+  labels:
+    job: 'node-exporter'
+    instance: 'narsis'
+    server_type: 'media'
+
+# Add clockworkcity when node-exporter deployed there:
+# - targets:
+#     - '192.168.1.10:9100'  # clockworkcity node-exporter
+#   labels:
+#     job: 'node-exporter'
+#     instance: 'clockworkcity'
+#     server_type: 'edge'

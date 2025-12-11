@@ -1,0 +1,35 @@
+# IPMI Exporter Configuration
+#
+# This config defines how to connect to IPMI BMCs (Baseboard Management Controllers)
+# Credentials are passed via Prometheus scrape config parameters
+
+modules:
+  default:
+    # Default collector for all IPMI sensors
+    collectors:
+      - bmc        # BMC info
+      - ipmi       # All IPMI sensors (temps, voltages, fans, power)
+      - chassis    # Chassis power state
+      - dcmi       # Data Center Manageability Interface (power consumption)
+      - sel        # System Event Log info (not full log)
+
+    # Exclude noisy/irrelevant sensors (optional)
+    exclude_sensor_ids: []
+
+    # Workarounds for specific BMC quirks
+    workarounds:
+      - freeipmi_workaround
+
+    # Timeout for IPMI commands (increase if BMC is slow)
+    timeout: 10s
+
+  # You can define multiple modules for different server types
+  # Example for Supermicro servers (if specific tuning needed)
+  supermicro:
+    collectors:
+      - bmc
+      - ipmi
+      - dcmi
+    workarounds:
+      - supermicro_workaround
+    timeout: 10s

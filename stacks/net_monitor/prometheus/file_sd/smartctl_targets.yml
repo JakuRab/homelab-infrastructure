@@ -1,0 +1,18 @@
+# Smartctl (Disk SMART Health) Monitoring Targets
+#
+# One target per server running smartctl-exporter
+
+- targets:
+    - '192.168.1.11:9633'  # narsis smartctl-exporter
+  labels:
+    job: 'smartctl'
+    instance: 'narsis'
+    server_type: 'media'
+
+# Add clockworkcity when smartctl-exporter deployed there:
+# - targets:
+#     - '192.168.1.10:9633'  # clockworkcity smartctl-exporter
+#   labels:
+#     job: 'smartctl'
+#     instance: 'clockworkcity'
+#     server_type: 'edge'

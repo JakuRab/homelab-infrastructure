@@ -1,0 +1,22 @@
+# IPMI/BMC Monitoring Targets
+#
+# IMPORTANT: These are IPMI network addresses (BMC IPs), NOT server OS IPs!
+# Find IPMI IP: Check router DHCP leases for "SUPERMICRO" hostname
+# Or from narsis: sudo ipmitool lan print 1 | grep "IP Address"
+
+- targets:
+    - '192.168.1.100'  # narsis IPMI (ADJUST THIS IP based on your setup)
+  labels:
+    job: 'ipmi'
+    instance: 'narsis'
+    module: 'default'
+    server_type: 'media'
+
+# Example for clockworkcity (if Supermicro board with IPMI):
+# - targets:
+#     - '192.168.1.XXX'  # clockworkcity IPMI IP
+#   labels:
+#     job: 'ipmi'
+#     instance: 'clockworkcity'
+#     module: 'default'
+#     server_type: 'edge'
