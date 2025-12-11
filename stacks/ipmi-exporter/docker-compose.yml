@@ -7,12 +7,8 @@ services:
     image: prometheuscommunity/ipmi-exporter:v1.8.0
     container_name: ipmi-exporter
     restart: unless-stopped
-    command:
-      - '--config.file=/config/ipmi.yml'
     ports:
       - "9290:9290"
-    volumes:
-      - ./config:/config:ro
     networks:
       - caddy_net
     labels:
