@@ -9,9 +9,12 @@ services:
     restart: unless-stopped
     ports:
       - "9633:9633"
-    devices:
-      - /dev:/dev
     privileged: true
+    volumes:
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+    security_opt:
+      - apparmor:unconfined
     networks:
       - caddy_net
     labels:
