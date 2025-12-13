@@ -1,1 +1,1 @@
-/home/kuba/homelab-docs/CLAUDE.md
+../homelab-docs/CLAUDE.md
