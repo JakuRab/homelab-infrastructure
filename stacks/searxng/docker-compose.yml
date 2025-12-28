@@ -3,6 +3,9 @@ services:
     image: searxng/searxng:latest
     container_name: searxng
     restart: unless-stopped
+    dns:
+      - 192.168.1.1  # OPNsense/AdGuard
+      - 1.1.1.1      # Cloudflare fallback
     environment:
       - SEARXNG_BASE_URL=https://search.rabalski.eu/
       - SEARXNG_SECRET=${SEARXNG_SECRET:-}

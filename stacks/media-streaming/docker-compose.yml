@@ -3,6 +3,9 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    dns:
+      - 192.168.1.1
+      - 1.1.1.1
     ports:
       - "8096:8096"
     user: ${PUID}:${PGID}
@@ -36,6 +39,9 @@ services:
     image: deluan/navidrome:latest
     container_name: navidrome
     restart: unless-stopped
+    dns:
+      - 192.168.1.1
+      - 1.1.1.1
     ports:
       - "4533:4533"
     user: ${PUID}:${PGID}

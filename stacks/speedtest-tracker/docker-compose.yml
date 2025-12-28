@@ -3,6 +3,9 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:latest
     container_name: speedtest-tracker
     restart: unless-stopped
+    dns:
+      - 192.168.1.1  # OPNsense/AdGuard
+      - 1.1.1.1      # Cloudflare fallback
     ports:
       - "8888:80"
     environment:
