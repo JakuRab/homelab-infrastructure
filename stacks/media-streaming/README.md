@@ -152,20 +152,20 @@ Before setting up Caddy reverse proxy, test locally:
 
 1. Navigate to: **Dashboard → Playback**
 2. **Transcoding** section:
-   - Hardware acceleration: `None` (for now, change to NVENC when GPU installed)
+   - Hardware acceleration: **NVIDIA NVENC** (GPU installed: T600 with CUDA 12.4)
    - Threading: Leave at auto-detected value
 3. Click **Save**
 
-**Note**: When you install the Quadro T400/T600 GPU:
-1. Uncomment the `devices` section in `docker-compose.yml`
+**Note**: The compose file is already configured with GPU access. If you need to disable GPU:
+1. Comment out the `devices` and `deploy` sections in `docker-compose.yml`
 2. Redeploy stack
-3. Change hardware acceleration to: **NVIDIA NVENC**
+3. Change hardware acceleration to: **None**
 
 #### Additional Settings
 
 1. **Dashboard → Networking**:
    - Enable automatic port mapping: ❌ (not needed behind reverse proxy)
-   - Known proxies: Add `192.168.1.10` (clockworkcity Caddy)
+   - Known proxies: Add `192.168.1.11` (narsis Caddy)
    - Click **Save**
 
 2. **Dashboard → Libraries**:
@@ -305,8 +305,8 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
 **Add DNS rewrites** in AdGuard Home:
-- `media.rabalski.eu` → `192.168.1.10` (or `100.98.21.87` for Tailscale)
-- `music.rabalski.eu` → `192.168.1.10`
+- `media.rabalski.eu` → `192.168.1.11` (narsis - where Caddy runs)
+- `music.rabalski.eu` → `192.168.1.11`
 
 **Access via HTTPS**:
 - `https://media.rabalski.eu` (Jellyfin)
@@ -382,17 +382,21 @@ docker logs jellyfin --tail 100 | grep -i transcode
 ```
 
 **Common issues**:
-- **CPU transcoding slow**: Normal on Xeon without GPU, upgrade to GPU for hardware acceleration
+- **GPU not detected**: Verify NVIDIA drivers and Container Toolkit installed on host
 - **Codec not supported**: Install `jellyfin-ffmpeg` (included in container by default)
 
-**When GPU installed**:
-1. Verify GPU accessible:
+**Verify GPU accessible**:
+1. Check GPU visible in container:
    ```bash
-   docker exec jellyfin nvidia-smi
-   # or for Intel iGPU:
-   docker exec jellyfin ls -la /dev/dri
+   docker exec jellyfin nvidia-smi -L
+   # Should show: GPU 0: NVIDIA T600
    ```
-2. Dashboard → Playback → Hardware acceleration → `NVIDIA NVENC`
+2. Check DRI devices:
+   ```bash
+   docker exec jellyfin ls -la /dev/dri
+   # Should show: card0, card1, renderD128
+   ```
+3. Dashboard → Playback → Hardware acceleration → Ensure `NVIDIA NVENC` is selected
 
 ---
 
@@ -438,15 +442,16 @@ Current setup uses NVMe for all media. For large libraries:
 
 ### Jellyfin
 
-**When GPU installed** (Quadro T400/T600):
-1. Uncomment `devices` in docker-compose.yml
-2. Redeploy stack
-3. Enable NVENC in Jellyfin settings
-4. **Result**: 20-30× faster transcoding, lower CPU usage
+**GPU Hardware Acceleration** (NVIDIA T600 - Installed ✅):
+- **Drivers**: NVIDIA 550.163.01 with CUDA 12.4
+- **Encoders**: H.264 (h264_nvenc), HEVC (hevc_nvenc), AV1 (av1_nvenc)
+- **Result**: 20-30× faster transcoding compared to CPU-only
+- **Settings**: Dashboard → Playback → Hardware acceleration → `NVIDIA NVENC`
 
-**For current CPU-only setup**:
-- Limit simultaneous transcodes: Dashboard → Playback → Throttle transcodes
-- Encourage direct play (no transcoding) by using compatible formats
+**Additional optimizations**:
+- Limit simultaneous transcodes if multiple users streaming
+- Encourage direct play (no transcoding) when client supports the codec
+- Use hardware tone mapping for HDR → SDR conversion
 
 ### Navidrome
 
@@ -460,10 +465,10 @@ Current setup uses NVMe for all media. For large libraries:
 
 1. ✅ Add media via Radarr/Sonarr/Lidarr
 2. ✅ Install mobile apps and test streaming
-3. ⏳ When Quadro GPU arrives: Enable hardware transcoding
-4. ⏳ Plan bulk storage strategy for large media library
+3. ✅ GPU installed and configured: NVIDIA T600 with hardware transcoding enabled
+4. ⏳ Plan bulk storage strategy for large media library (when NVMe fills up)
 
 ---
 
-**Stack Status**: ⏳ Pending Deployment
-**Last Updated**: 2025-12-07
+**Stack Status**: ✅ Production (GPU-accelerated)
+**Last Updated**: 2025-12-29
