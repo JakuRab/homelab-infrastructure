@@ -23,17 +23,15 @@ services:
       - media_net
     labels:
       - "description=Jellyfin media server"
-    # Uncomment when Quadro GPU is installed:
-    # devices:
-    #   - /dev/dri:/dev/dri
-    # For NVIDIA GPU, also add:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    devices:
+      - /dev/dri:/dev/dri
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   navidrome:
     image: deluan/navidrome:latest
