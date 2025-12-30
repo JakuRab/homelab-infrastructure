@@ -2,6 +2,6 @@
     job: tcp
     scope: lan
   targets:
-    - 192.168.1.10:22        # clockworkcity SSH (LAN)
-    - 192.168.1.10:443       # Caddy HTTPS listener
+    - 192.168.1.11:22        # narsis SSH (LAN)
+    - 192.168.1.11:443       # narsis Caddy HTTPS listener
     # - 192.168.1.2:8291     # MikroTik management (uncomment once port is confirmed)

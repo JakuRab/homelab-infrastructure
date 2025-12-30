@@ -2,7 +2,7 @@
     job: icmp
   targets:
     # LAN devices
-    - 192.168.1.1       # home router
-    - 192.168.1.10      # clockworkcity (LAN)
+    - 192.168.1.1       # clockworkcity (OPNsense router)
+    - 192.168.1.11      # narsis (media/homelab server)
     - 192.168.1.2       # MikroTik
     # - 192.168.1.200     # Epson (uncomment if always online)
