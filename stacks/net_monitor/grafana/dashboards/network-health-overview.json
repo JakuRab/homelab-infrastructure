@@ -670,24 +670,31 @@
       "title": "Service Status Matrix",
       "transformations": [
         {
-          "id": "merge",
-          "options": {}
+          "id": "joinByField",
+          "options": {
+            "byField": "instance",
+            "mode": "outer"
+          }
         },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
               "__name__": true,
-              "job": false
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "job 1": true,
+              "job 2": true
             },
             "indexByName": {
-              "Time": 0,
-              "Value #A": 3,
-              "Value #B": 4,
-              "Value #C": 5,
-              "instance": 1,
-              "job": 2
+              "instance": 0,
+              "job": 1,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4
             },
             "renameByName": {
               "Value #A": "Status",

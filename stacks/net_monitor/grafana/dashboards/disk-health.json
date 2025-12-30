@@ -446,30 +446,51 @@
       "title": "Disk Information",
       "transformations": [
         {
-          "id": "merge",
-          "options": {}
+          "id": "joinByField",
+          "options": {
+            "byField": "device",
+            "mode": "outer"
+          }
         },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
               "Value #A": true,
               "__name__": true,
+              "__name__ 1": true,
+              "__name__ 2": true,
               "ata_additional_product_id": true,
+              "ata_additional_product_id 1": true,
               "ata_version": true,
+              "ata_version 1": true,
               "form_factor": true,
+              "form_factor 1": true,
               "instance": true,
+              "instance 1": true,
+              "instance 2": true,
               "interface": true,
+              "interface 1": true,
               "job": true,
+              "job 1": true,
+              "job 2": true,
               "protocol": true,
+              "protocol 1": true,
               "sata_version": true,
+              "sata_version 1": true,
               "scsi_product": true,
               "scsi_revision": true,
               "scsi_vendor": true,
               "scsi_version": true,
               "server_type": true,
-              "temperature_type": true
+              "temperature_type": true,
+              "model_name 1": true,
+              "model_family 1": true,
+              "serial_number 1": true,
+              "firmware_version 1": true
             },
             "indexByName": {
               "device": 0,

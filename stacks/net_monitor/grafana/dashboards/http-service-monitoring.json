@@ -309,8 +309,11 @@
       "title": "HTTP Service Details",
       "transformations": [
         {
-          "id": "merge",
-          "options": {}
+          "id": "joinByField",
+          "options": {
+            "byField": "instance",
+            "mode": "outer"
+          }
         },
         {
           "id": "organize",
@@ -322,7 +325,13 @@
               "Time 3": true,
               "Time 4": true,
               "__name__": true,
-              "job": true
+              "__name__ 1": true,
+              "__name__ 2": true,
+              "__name__ 3": true,
+              "job": true,
+              "job 1": true,
+              "job 2": true,
+              "job 3": true
             },
             "indexByName": {
               "instance": 0,
