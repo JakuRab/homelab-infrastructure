@@ -81,7 +81,7 @@
       "pluginVersion": "11.2.0",
       "targets": [
         {
-          "expr": "probe_success{job=\"http\"}",
+          "expr": "probe_success{job=\"http\"} == 1",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -282,25 +282,25 @@
       "pluginVersion": "11.2.0",
       "targets": [
         {
-          "expr": "probe_http_status_code{job=\"http\"}",
+          "expr": "probe_http_status_code{job=\"http\"} and on(instance) probe_success{job=\"http\"} == 1",
           "format": "table",
           "instant": true,
           "refId": "A"
         },
         {
-          "expr": "probe_duration_seconds{job=\"http\"}",
+          "expr": "probe_duration_seconds{job=\"http\"} and on(instance) probe_success{job=\"http\"} == 1",
           "format": "table",
           "instant": true,
           "refId": "B"
         },
         {
-          "expr": "(probe_ssl_earliest_cert_expiry{job=\"http\"} - time()) / 86400",
+          "expr": "(probe_ssl_earliest_cert_expiry{job=\"http\"} - time()) / 86400 and on(instance) probe_success{job=\"http\"} == 1",
           "format": "table",
           "instant": true,
           "refId": "C"
         },
         {
-          "expr": "probe_http_version{job=\"http\"}",
+          "expr": "probe_http_version{job=\"http\"} and on(instance) probe_success{job=\"http\"} == 1",
           "format": "table",
           "instant": true,
           "refId": "D"
@@ -317,10 +317,20 @@
           "options": {
             "excludeByName": {
               "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
               "__name__": true,
               "job": true
             },
-            "indexByName": {},
+            "indexByName": {
+              "instance": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4
+            },
             "renameByName": {
               "Value #A": "Status Code",
               "Value #B": "Response Time",
