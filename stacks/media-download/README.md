@@ -200,12 +200,12 @@ qbit.rabalski.eu {
 2. **Reload Caddy**:
 
 ```bash
-ssh sothasil@192.168.1.10
+ssh athires@192.168.1.11
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
 3. **Add DNS rewrite** in AdGuard Home:
-   - `qbit.rabalski.eu` → `192.168.1.10` (or `100.98.21.87` for Tailscale)
+   - `qbit.rabalski.eu` → `192.168.1.11`
 
 4. **Access**: `https://qbit.rabalski.eu`
 

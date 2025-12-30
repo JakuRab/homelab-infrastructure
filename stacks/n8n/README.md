@@ -80,7 +80,7 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 Add rewrite in AdGuard Home:
 - Domain: `n8n.rabalski.eu`
-- IP: `192.168.1.10`
+- IP: `192.168.1.11`
 
 ## First-Time Setup
 

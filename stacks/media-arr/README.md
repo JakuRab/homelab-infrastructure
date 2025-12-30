@@ -344,15 +344,15 @@ lidarr.rabalski.eu {
 
 **Reload Caddy**:
 ```bash
-ssh sothasil@192.168.1.10
+ssh athires@192.168.1.11
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
 **Add DNS rewrites** in AdGuard Home:
-- `prowlarr.rabalski.eu` → `192.168.1.10` (or `100.98.21.87`)
-- `radarr.rabalski.eu` → `192.168.1.10`
-- `sonarr.rabalski.eu` → `192.168.1.10`
-- `lidarr.rabalski.eu` → `192.168.1.10`
+- `prowlarr.rabalski.eu` → `192.168.1.11`
+- `radarr.rabalski.eu` → `192.168.1.11`
+- `sonarr.rabalski.eu` → `192.168.1.11`
+- `lidarr.rabalski.eu` → `192.168.1.11`
 
 **Access via HTTPS**:
 - `https://prowlarr.rabalski.eu`

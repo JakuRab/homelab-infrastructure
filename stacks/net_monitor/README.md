@@ -25,7 +25,7 @@ grafana/
 
 ## Deployment (Portainer stack)
 
-1. Copy this folder to the host running Portainer. In this repo it lives at `homelabbing/configs/net_monitor` and typically maps to `/srv/configs/net_monitor` on clockworkcity.
+1. Copy this folder to the host running Portainer. Typically maps to `/mnt/nvme/services/net_monitor` on narsis.
 2. In Portainer: *Stacks → Add stack → Upload* the `docker-compose.yml` from this folder.
 3. Set these environment variables in the stack editor before deploying (or load `stack.env.example`):
    - `GF_ADMIN_USER` – Grafana admin username (default `admin`).
@@ -34,7 +34,7 @@ grafana/
    - `GRAFANA_PORT` – host port to expose Grafana (defaults to `3300` if unset).
    - `CONFIG_ROOT` – absolute path on the host containing this folder (default `/srv/configs/net_monitor`). Ensure that path holds the `prometheus`, `blackbox`, and `grafana` subdirectories before deploying.
 4. Make sure the external Docker network `caddy_net` already exists (Caddy and other fronted services use it). If needed: `docker network create caddy_net`.
-5. Choose the target Docker environment (usually `clockworkcity`) and click *Deploy the stack*.
+5. Choose the target Docker environment (usually `narsis`) and click *Deploy the stack*.
 5. Expose the web UIs via Caddy/AdGuard rewrites (see below).
 
 > The stack creates Docker bind-mounts under this folder, so keep it on a persistent filesystem (not tmpfs).
@@ -45,8 +45,8 @@ grafana/
 - Prometheus UI is available at `http(s)://<host>:9090` for raw metrics queries.
 - Confirm Blackbox exporter is reachable at `http(s)://<host>:9115` to debug probes if needed.
 - Configure AdGuard/Caddy rewrites, e.g.:
-  - `grafana.rabalski.eu → 192.168.1.10:${GRAFANA_PORT}`
-  - `prometheus.rabalski.eu → 192.168.1.10:9090` (optional)
+  - `grafana.rabalski.eu → 192.168.1.11`
+  - `prometheus.rabalski.eu → 192.168.1.11` (optional)
 
 ## Managing probe targets
 

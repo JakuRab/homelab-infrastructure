@@ -2,7 +2,7 @@ Server Caddy with Cloudflare DNS (DNS‑01)
 
 What this is
 - A server-ready Caddy setup that packages Caddy v2.8.4 plus the Cloudflare DNS plugin (github.com/caddy-dns/cloudflare) by downloading the official binary bundle.
-- Used on clockworkcity under `~/caddy`. The repo copy (`configs/caddy/*`) is for clarity and versioning — sync it to the server before deploying.
+- Used on narsis (192.168.1.11) for reverse proxy to all homelab services. Deployed via Portainer GitOps.
 
 Contents
 - `Caddyfile` — full site configuration (mounted read‑only by the container)

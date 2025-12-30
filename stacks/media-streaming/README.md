@@ -300,7 +300,7 @@ music.rabalski.eu {
 
 **Reload Caddy**:
 ```bash
-ssh sothasil@192.168.1.10
+ssh athires@192.168.1.11
 docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 

@@ -1,7 +1,6 @@
 - labels:
     job: http
   targets:
-    - https://cloud.rabalski.eu
     - https://portainer.rabalski.eu
     - https://search.rabalski.eu
 #    - https://21376942.rabalski.eu
@@ -12,8 +11,15 @@
     - https://ram.rabalski.eu
     - https://pad.rabalski.eu
     - https://speedtest.rabalski.eu
-    - https://aio-setup.rabalski.eu
     - https://dom.rabalski.eu
     - https://n8n.rabalski.eu
     - https://grafana.rabalski.eu
     - https://prometheus.rabalski.eu
+    # Media services
+    - https://qbit.rabalski.eu
+    - https://prowlarr.rabalski.eu
+    - https://radarr.rabalski.eu
+    - https://sonarr.rabalski.eu
+    - https://lidarr.rabalski.eu
+    - https://media.rabalski.eu
+    - https://music.rabalski.eu
