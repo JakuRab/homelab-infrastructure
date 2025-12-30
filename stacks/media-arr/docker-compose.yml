@@ -18,7 +18,9 @@ services:
       - caddy_net
       - media_net
     labels:
-      - "description=Prowlarr indexer manager for arr stack"
+      - "glance.name=Prowlarr"
+      - "glance.icon=sh:prowlarr-light"
+      - "glance.url=https://prowlarr.rabalski.eu"
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -41,7 +43,9 @@ services:
       - caddy_net
       - media_net
     labels:
-      - "description=Radarr movie collection manager"
+      - "glance.name=Radarr"
+      - "glance.icon=sh:radarr-light"
+      - "glance.url=https://radarr.rabalski.eu"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -64,7 +68,9 @@ services:
       - caddy_net
       - media_net
     labels:
-      - "description=Sonarr TV show collection manager"
+      - "glance.name=Sonarr"
+      - "glance.icon=sh:sonarr-light"
+      - "glance.url=https://sonarr.rabalski.eu"
 
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
@@ -87,7 +93,9 @@ services:
       - caddy_net
       - media_net
     labels:
-      - "description=Lidarr music collection manager"
+      - "glance.name=Lidarr"
+      - "glance.icon=sh:lidarr-light"
+      - "glance.url=https://lidarr.rabalski.eu"
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -104,7 +112,8 @@ services:
     networks:
       - media_net
     labels:
-      - "description=FlareSolverr Cloudflare bypass for indexers"
+      - "glance.name=FlareSolverr"
+      - "glance.icon=sh:flaresolverr-light"
 
 networks:
   caddy_net:

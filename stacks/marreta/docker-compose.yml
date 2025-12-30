@@ -15,7 +15,7 @@ services:
       - LANGUAGE=en
     labels:
       - "glance.name=Marreta"
-      - "glance.icon=sh:hammer"
+      - "glance.icon=mdi:LockOpenVariant"
       - "glance.url=https://ram.rabalski.eu"
       - "glance.description=Paywall Bypass"
     networks:

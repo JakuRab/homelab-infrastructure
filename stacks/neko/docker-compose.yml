@@ -18,7 +18,7 @@ services:
       - "52100:52100/tcp"
     labels:
       - "glance.name=n.eko"
-      - "glance.icon=si:firefox"
+      - "glance.icon=sh:neko-light"
       - "glance.url=https://kicia.rabalski.eu"
       - "glance.description=Browser Isolation"
     networks:

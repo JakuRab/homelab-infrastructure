@@ -4,7 +4,7 @@ services:
     container_name: portainer
     labels:
       glance.name: "Portainer"
-      glance.icon: "si:portainer"
+      glance.icon: "sh:portainer-light"
       glance.url: "https://portainer.rabalski.eu"
     restart: unless-stopped
     # ---- Option A (HTTPS upstream to 9443) ----

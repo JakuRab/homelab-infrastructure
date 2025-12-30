@@ -37,7 +37,7 @@ services:
       timeout: 10s
     labels:
       - "glance.name=Speedtest"
-      - "glance.icon=sh:gauge"
+      - "glance.icon=sh:speedtest-tracker-light"
       - "glance.url=https://speedtest.rabalski.eu"
       - "glance.description=Internet Speed Tracking"
     networks:

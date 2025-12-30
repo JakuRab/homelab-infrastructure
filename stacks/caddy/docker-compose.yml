@@ -19,6 +19,9 @@ services:
     environment:
       CF_API_TOKEN: ${CF_API_TOKEN}
       CLOUDFLARE_API_TOKEN: ${CF_API_TOKEN}
+    labels:
+      - "glance.name=Caddy"
+      - "glance.icon=sh:caddy-light"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

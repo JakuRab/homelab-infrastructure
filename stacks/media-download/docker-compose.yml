@@ -25,6 +25,9 @@ services:
       - PGID=${PGID}
     volumes:
       - /mnt/nvme/services/media/config/gluetun:/gluetun
+    labels:
+      - "glance.name=Gluetun"
+      - "glance.icon=sh:gluetun-light"
     networks:
       - caddy_net
       - media_net
@@ -56,7 +59,9 @@ services:
       - /mnt/nvme/services/media/config/qbittorrent:/config
       - /mnt/nvme/services/media/downloads:/downloads
     labels:
-      - "description=qBittorrent torrent client (routed through Gluetun VPN)"
+      - "glance.name=qBittorrent"
+      - "glance.icon=sh:qbittorrent-light"
+      - "glance.url=https://qbit.rabalski.eu"
 
 networks:
   caddy_net:

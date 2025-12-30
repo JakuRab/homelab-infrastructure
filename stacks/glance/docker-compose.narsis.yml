@@ -18,7 +18,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       - "glance.name=Glance"
-      - "glance.icon=sh:layout-dashboard"
+      - "glance.icon=sh:glance-light"
       - "glance.url=https://deck.rabalski.eu"
       - "glance.description=Dashboard"
     networks:

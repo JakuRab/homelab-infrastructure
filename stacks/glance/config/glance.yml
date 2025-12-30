@@ -1,0 +1,225 @@
+theme:
+  background-color: 0 0 16
+  primary-color: 43 59 81
+  positive-color: 61 66 44
+  negative-color: 6 96 59
+  contrast-multiplier: 1.1
+  presets:
+    gruvbox-dark:
+      background-color: 0 0 16
+      primary-color: 43 59 81
+      positive-color: 61 66 44
+      negative-color: 6 96 59
+    gruvbox-custom:
+      background-color: 0 0 16
+      primary-color: 24 97 58
+      positive-color: 61 66 44
+      negative-color: 6 96 59
+
+pages:
+  - name: Home
+
+    head-widgets:
+      - type: search
+        title: Demonic Tutor
+        search-engine: "https://search.rabalski.eu/search?q={QUERY}"
+        placeholder: "You may search your library for one card and take it into your hand. Reshuffle you library afterwards."
+        bangs:
+          - title: "YouTube"
+            shortcut: "!y"
+            url: "https://www.youtube.com/results?search_query={QUERY}"
+          - title: "Google"
+            shortcut: "!g"
+            url: "https://google.com/search?q={QUERY}"
+          - title: "Wikipedia"
+            shortcut: "!w"
+            url: "https://en.wikipedia.org/w/index.php?search={QUERY}"
+      - type: server-stats
+        servers:
+          - type: local
+            name: "Narsis"
+            hide-mountpoints-by-default: true
+            mountpoints:
+              "/hostroot": { name: "Root", hide: false }
+              "/hostroot/mnt/nvme": { name: "NVMe", hide: false }
+            
+
+    columns:
+      - size: small
+        widgets:
+          - type: clock
+            hour-format: 24h
+          - type: custom-api
+            title: "Air Quality"
+            cache: 10m
+            url: "https://api.waqi.info/feed/geo:${LAT};${LON}/?token=${secret:waqi_token}"
+            template: |
+              {{ $aqi := printf "%03s" (.JSON.String "data.aqi") }}
+              {{ $aqiraw := .JSON.String "data.aqi" }}
+              {{ $updated := .JSON.String "data.time.iso" }}
+              {{ $humidity := .JSON.String "data.iaqi.h.v" }}
+              {{ $ozone := .JSON.String "data.iaqi.o3.v" }}
+              {{ $pm25 := .JSON.String "data.iaqi.pm25.v" }}
+              {{ $pressure := .JSON.String "data.iaqi.p.v" }}
+
+              <div class="flex justify-between">
+                <div class="size-h5">
+                  {{ if le $aqi "050" }}
+                    <div class="color-positive">Good air quality</div>
+                  {{ else if le $aqi "100" }}
+                    <div class="color-primary">Moderate air quality</div>
+                  {{ else }}
+                    <div class="color-negative">Bad air quality</div>
+                  {{ end }}
+                </div>
+              </div>
+
+              <div class="color-highlight size-h2">AQI: {{ $aqiraw }}</div>
+              <div style="border-bottom: 1px solid; margin-block: 10px;"></div>
+
+              <div class="margin-block-2">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <div class="size-h3 color-highlight">{{ $humidity }}%</div>
+                    <div class="size-h6">HUMIDITY</div>
+                  </div>
+                  <div>
+                    <div class="size-h3 color-highlight">{{ $ozone }} μg/m³</div>
+                    <div class="size-h6">OZONE</div>
+                  </div>
+                  <div>
+                    <div class="size-h3 color-highlight">{{ $pm25 }} μg/m³</div>
+                    <div class="size-h6">PM2.5</div>
+                  </div>
+                  <div>
+                    <div class="size-h3 color-highlight">{{ $pressure }} hPa</div>
+                    <div class="size-h6">PRESSURE</div>
+                  </div>
+                </div>
+                <div class="size-h6" style="margin-top: 10px;">Last Updated at {{ slice $updated 11 16 }}</div>
+              </div>
+
+          - type: calendar
+            first-day-of-week: monday
+
+          - type: weather
+            location: "Gdynia, Poland"
+            units: metric
+            hour-format: 24h
+
+      - size: full
+        widgets:
+          - type: split-column
+            widgets:
+              - type: releases
+                show-source-icon: true
+                cache: 12h
+                repositories:
+                  - glanceapp/glance
+                  - caddyserver/caddy
+                  - nextcloud/server
+                  - searxng/searxng
+                  - AdguardTeam/AdGuardHome
+                  - jellyfin/jellyfin
+                  - DumbWareio/DumbPad
+                  - manualdousuario/marreta
+                  - m1k1o/neko
+                  - portainer/portainer
+                  - alexjustesen/speedtest-tracker
+                  - dani-garcia/vaultwarden 
+                  - dockerhub:gotify/server
+
+              - type: custom-api
+                title: "Tailscale Devices"
+                title-url: "https://login.tailscale.com/admin/machines"
+                url: "https://api.tailscale.com/api/v2/tailnet/-/devices"
+                headers:
+                  Authorization: "Bearer ${secret:tailscale_api_key}"
+                cache: 10m
+                template: |
+                  {{ $enableOnlineIndicator := false }}
+                  <style>
+                    .device-info-container { position: relative; overflow: hidden; height: 1.5em; }
+                    .device-info { display: flex; transition: transform 0.2s ease, opacity 0.2s ease; }
+                    .device-ip { position: absolute; top: 0; left: 0; transform: translateY(-100%); opacity: 0; transition: transform 0.2s ease, opacity 0.2s ease; }
+                    .device-info-container:hover .device-info { transform: translateY(100%); opacity: 0; }
+                    .device-info-container:hover .device-ip { transform: translateY(0); opacity: 1; }
+                    .update-indicator, .offline-indicator, .online-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 4px; vertical-align: middle; }
+                    .update-indicator { background-color: var(--color-primary); }
+                    .offline-indicator { background-color: var(--color-negative); }
+                    .online-indicator { background-color: var(--color-positive); }
+                    .device-name-container { display: flex; align-items: center; gap: 8px; }
+                    .indicators-container { display: flex; align-items: center; gap: 4px; }
+                  </style>
+                  <ul class="list list-gap-10 collapsible-container" data-collapse-after="10">
+                    {{ range .JSON.Array "devices" }}
+                      <li>
+                        <div class="flex items-center gap-10">
+                          <div class="device-name-container grow">
+                            <span class="size-h4 block text-truncate color-primary">{{ findMatch "^([^.]+)" (.String "name") }}</span>
+                            <div class="indicators-container">
+                              {{ if (.Bool "updateAvailable") }}<span class="update-indicator" data-popover-type="text" data-popover-text="Update Available"></span>{{ end }}
+                              {{ $lastSeen := .String "lastSeen" | parseTime "rfc3339" }}
+                              {{ if not ($lastSeen.After (offsetNow "-10s")) }}
+                                {{ $lastSeenTimezoned := $lastSeen.In now.Location }}
+                                <span class="offline-indicator" data-popover-type="text" data-popover-text="Offline"></span>
+                              {{ else if $enableOnlineIndicator }}
+                                <span class="online-indicator" data-popover-type="text" data-popover-text="Online"></span>
+                              {{ end }}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="device-info-container">
+                          <ul class="list-horizontal-text device-info">
+                            <li>{{ .String "os" }}</li>
+                            <li>{{ .String "user" }}</li>
+                          </ul>
+                          <div class="device-ip">{{ .String "addresses.0" }}</div>
+                        </div>
+                      </li>
+                    {{ end }}
+                  </ul>
+
+          - type: split-column
+            widgets:
+              - type: docker-containers
+                format-container-names: true
+              - type: dns-stats
+                service: adguard
+                url: "http://192.168.1.1:3000"
+                username: "${ADGUARD_USERNAME}"
+                password: ${secret:adguard_password}
+
+          - type: custom-api
+            title: "Epic Free Games"
+            cache: 1h
+            url: "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en&country=PL&allowCountries=PL"
+            template: |
+              <div>
+                {{ if eq .Response.StatusCode 200 }}
+                  <div class="horizontal-cards-2">
+                    {{ range .JSON.Array "data.Catalog.searchStore.elements" }}
+                      {{ $price := .String "price.totalPrice.discountPrice" }}
+                      {{ $hasPromo := gt (len (.Array "promotions.promotionalOffers")) 0 }}
+                      {{ if and $hasPromo (eq $price "0") }}
+                        {{ $gamePage := .String "productSlug" }}
+                        {{ if gt (len (.Array "offerMappings")) 0 }}{{ $gamePage = .String "offerMappings.0.pageSlug" }}{{ end }}
+                        <a href="https://store.epicgames.com/en-US/p/{{ $gamePage }}" target="_blank" class="card">
+                          {{ $title := .String "title" }}
+                          {{ range .Array "keyImages" }}
+                            {{ if eq (.String "type") "OfferImageWide" }}
+                              <img src="{{ .String "url" }}" alt="{{ $title }}" style="width: 100%; max-width: 300px; height: 150px; object-fit: cover; border-radius: var(--border-radius);">
+                            {{ end }}
+                          {{ end }}
+                          <div class="card-content">
+                            <span class="size-base color-primary">{{ $title }}</span><br>
+                            <span class="size-h5 color-subdue">Free this week</span>
+                          </div>
+                        </a>
+                      {{ end }}
+                    {{ end }}
+                  </div>
+                {{ else }}
+                  <p class="color-negative">Error fetching Epic Games data</p>
+                {{ end }}
+              </div>

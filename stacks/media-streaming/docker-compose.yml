@@ -22,7 +22,9 @@ services:
       - caddy_net
       - media_net
     labels:
-      - "description=Jellyfin media server"
+      - "glance.name=Jellyfin"
+      - "glance.icon=sh:jellyfin-light"
+      - "glance.url=https://media.rabalski.eu"
     devices:
       - /dev/dri:/dev/dri
     deploy:
@@ -56,7 +58,9 @@ services:
       - caddy_net
       - media_net
     labels:
-      - "description=Navidrome music streaming server"
+      - "glance.name=Navidrome"
+      - "glance.icon=sh:navidrome-light"
+      - "glance.url=https://music.rabalski.eu"
 
 networks:
   caddy_net:

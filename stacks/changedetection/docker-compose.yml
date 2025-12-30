@@ -14,7 +14,7 @@ services:
       - /mnt/nvme/services/changedetection/data:/datastore
     labels:
       - "glance.name=Changedetection"
-      - "glance.icon=sh:eye"
+      - "glance.icon=sh:changedetection-light"
       - "glance.url=https://watch.rabalski.eu"
       - "glance.description=Website Monitoring"
     networks:

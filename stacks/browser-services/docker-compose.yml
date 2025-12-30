@@ -10,6 +10,9 @@ services:
       - GRID_BROWSER_TIMEOUT=10
       - GRID_TIMEOUT=10
       - SE_ENABLE_TRACING=false
+    labels:
+      - "glance.name=Selenium Hub"
+      - "glance.icon=si:selenium"
     networks:
       - caddy_net
       - selenium-grid
@@ -25,6 +28,9 @@ services:
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
     shm_size: 2gb
+    labels:
+      - "glance.name=Selenium Chromium"
+      - "glance.icon=sh:chromium-light"
     networks:
       - selenium-grid
 
@@ -39,6 +45,9 @@ services:
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
     shm_size: 2gb
+    labels:
+      - "glance.name=Selenium Firefox"
+      - "glance.icon=si:firefoxbrowser"
     networks:
       - selenium-grid
 
@@ -51,6 +60,9 @@ services:
       - CONNECTION_TIMEOUT=10000
       - MAX_QUEUE_LENGTH=10
       - PREBOOT_CHROME=true
+    labels:
+      - "glance.name=Browserless Chrome"
+      - "glance.icon=sh:google-chrome-light"
     networks:
       - caddy_net
 
