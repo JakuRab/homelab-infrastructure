@@ -20,6 +20,7 @@ services:
       - VPN_PORT_FORWARDING_PROVIDER=protonvpn
       - FIREWALL_VPN_INPUT_PORTS=${QBITTORRENT_PORT}
       - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
+      - HTTP_CONTROL_SERVER_ADDRESS=:8000
       - TZ=${TZ}
       - PUID=${PUID}
       - PGID=${PGID}
@@ -49,7 +50,6 @@ services:
     network_mode: service:gluetun
     depends_on:
       - gluetun
-    # Removed health condition - let it start after gluetun starts
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -62,6 +62,26 @@ services:
       - "glance.name=qBittorrent"
       - "glance.icon=sh:qbittorrent-light"
       - "glance.url=https://qbit.rabalski.eu"
+
+  port-sync:
+    image: ghcr.io/snoringdragon/qbittorrent-port-forward-gluetun-sync:latest
+    container_name: port-sync
+    restart: unless-stopped
+    network_mode: service:gluetun
+    depends_on:
+      - gluetun
+      - qbittorrent
+    environment:
+      - TZ=${TZ}
+      - QBITTORRENT_SERVER=localhost
+      - QBITTORRENT_PORT=8080
+      - QBITTORRENT_USER=admin
+      - QBITTORRENT_PASS=${QBITTORRENT_PASS}
+      - GLUETUN_SERVER=localhost
+      - GLUETUN_PORT=8000
+      - CHECK_INTERVAL=300
+    labels:
+      - "glance.hide=true"
 
 networks:
   caddy_net:
