@@ -37,8 +37,8 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/radarr:/config
-      - /mnt/nvme/services/media/media/movies:/movies
-      - /mnt/nvme/services/media/downloads:/downloads
+      - /mnt/media/movies:/movies
+      - /mnt/media/downloads:/downloads
     networks:
       - caddy_net
       - media_net
@@ -62,8 +62,8 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/sonarr:/config
-      - /mnt/nvme/services/media/media/tv:/tv
-      - /mnt/nvme/services/media/downloads:/downloads
+      - /mnt/media/tv:/tv
+      - /mnt/media/downloads:/downloads
     networks:
       - caddy_net
       - media_net
@@ -87,8 +87,8 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/lidarr:/config
-      - /mnt/nvme/services/media/media/music:/music
-      - /mnt/nvme/services/media/downloads:/downloads
+      - /mnt/media/music:/music
+      - /mnt/media/downloads:/downloads
     networks:
       - caddy_net
       - media_net

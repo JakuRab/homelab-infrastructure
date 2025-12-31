@@ -57,7 +57,7 @@ services:
       - WEBUI_PORT=8080
     volumes:
       - /mnt/nvme/services/media/config/qbittorrent:/config
-      - /mnt/nvme/services/media/downloads:/downloads
+      - /mnt/media/downloads:/downloads
     labels:
       - "glance.name=qBittorrent"
       - "glance.icon=sh:qbittorrent-light"

@@ -15,9 +15,9 @@ services:
     volumes:
       - /mnt/nvme/services/media/config/jellyfin:/config
       - /mnt/nvme/services/media/config/jellyfin/cache:/cache
-      - /mnt/nvme/services/media/media/movies:/media/movies:ro
-      - /mnt/nvme/services/media/media/tv:/media/tv:ro
-      - /mnt/nvme/services/media/media/music:/media/music:ro
+      - /mnt/media/movies:/media/movies:ro
+      - /mnt/media/tv:/media/tv:ro
+      - /mnt/media/music:/media/music:ro
     networks:
       - caddy_net
       - media_net
@@ -53,7 +53,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/navidrome:/data
-      - /mnt/nvme/services/media/media/music:/music:ro
+      - /mnt/media/music:/music:ro
     networks:
       - caddy_net
       - media_net
