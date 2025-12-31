@@ -64,7 +64,7 @@ services:
       - "glance.url=https://qbit.rabalski.eu"
 
   port-sync:
-    image: ghcr.io/snoringdragon/qbittorrent-port-forward-gluetun-sync:latest
+    image: mjmeli/qbittorrent-port-forward-gluetun-server:latest
     container_name: port-sync
     restart: unless-stopped
     network_mode: service:gluetun
@@ -73,13 +73,14 @@ services:
       - qbittorrent
     environment:
       - TZ=${TZ}
-      - QBITTORRENT_SERVER=localhost
-      - QBITTORRENT_PORT=8080
-      - QBITTORRENT_USER=admin
-      - QBITTORRENT_PASS=${QBITTORRENT_PASS}
-      - GLUETUN_SERVER=localhost
-      - GLUETUN_PORT=8000
-      - CHECK_INTERVAL=300
+      - QBT_HOST=localhost
+      - QBT_PORT=8080
+      - QBT_USER=admin
+      - QBT_PASS=${QBITTORRENT_PASS}
+      - GTN_HOST=localhost
+      - GTN_PORT=8000
+      - INTERVAL=300
+      - LOG_LEVEL=info
     labels:
       - "glance.hide=true"
 
