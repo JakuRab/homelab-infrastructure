@@ -104,12 +104,12 @@ portainer.rabalski.eu {
 # }
 
 # ===========================
-# AdGuard
+# AdGuard Home (on OPNsense)
 # ===========================
 sink.rabalski.eu {
   import gate
   encode zstd gzip
-  reverse_proxy http://adguard:80
+  reverse_proxy http://192.168.1.1:3000
 }
 
 # ===========================
