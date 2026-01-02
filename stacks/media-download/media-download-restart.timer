@@ -1,0 +1,12 @@
+[Unit]
+Description=Weekly restart of media-download stack to refresh VPN port forwarding
+
+[Timer]
+# Run every Sunday at 4:00 AM
+OnCalendar=Sun *-*-* 04:00:00
+# Add some randomness to avoid exact timing (0-30 min delay)
+RandomizedDelaySec=1800
+Persistent=true
+
+[Install]
+WantedBy=timers.target

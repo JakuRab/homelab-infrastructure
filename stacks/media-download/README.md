@@ -213,6 +213,17 @@ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 ## Troubleshooting
 
+### Quick Diagnostic Commands
+
+```bash
+# Full health check (run all of these)
+docker ps | grep -E 'gluetun|qbittorrent|port-sync'      # Container status
+docker exec gluetun cat /tmp/gluetun/forwarded_port       # Gluetun's forwarded port
+docker exec gluetun wget -qO- http://localhost:8080/api/v2/app/preferences 2>/dev/null | grep -o '"listen_port":[0-9]*'  # qBittorrent's configured port
+docker exec qbittorrent netstat -tlnp | grep -E "(8080|567)"  # Listening ports
+docker logs port-sync --since 5m                           # port-sync status
+```
+
 ### Gluetun won't start / VPN not connecting
 
 **Check logs**:
@@ -244,6 +255,87 @@ docker port gluetun
 # Should show: 8080/tcp -> 0.0.0.0:8080
 ```
 
+### qBittorrent Shows "Firewalled" Status
+
+This is a common issue indicating peers cannot connect to you. Usually caused by:
+
+1. **Port mismatch** between Gluetun forwarded port and qBittorrent listen port
+2. **Port bound to loopback only** instead of VPN interface
+3. **Stale port forwarding** after extended uptime (2+ days)
+
+**Diagnosis**:
+```bash
+# Check Gluetun's forwarded port
+GLUETUN_PORT=$(docker exec gluetun cat /tmp/gluetun/forwarded_port)
+echo "Gluetun forwarded port: $GLUETUN_PORT"
+
+# Check qBittorrent's configured port (via API)
+QBT_PORT=$(docker exec gluetun wget -qO- http://localhost:8080/api/v2/app/preferences 2>/dev/null | grep -o '"listen_port":[0-9]*' | cut -d: -f2)
+echo "qBittorrent listen port: $QBT_PORT"
+
+# Check if ports match
+[ "$GLUETUN_PORT" = "$QBT_PORT" ] && echo "✓ Ports match" || echo "✗ PORT MISMATCH!"
+
+# Check where qBittorrent is listening
+docker exec qbittorrent netstat -tlnp | grep "$QBT_PORT"
+```
+
+**Expected listening output** (should include VPN interface 10.2.0.x):
+```
+tcp   0   0   10.2.0.2:56749      0.0.0.0:*   LISTEN   (VPN tunnel - GOOD)
+tcp   0   0   172.22.0.8:56749    0.0.0.0:*   LISTEN   (media_net - OK)
+tcp   0   0   127.0.0.1:56749     0.0.0.0:*   LISTEN   (loopback - OK)
+```
+
+**If listening only on 127.0.0.1** (loopback):
+```bash
+# Restart qBittorrent to re-bind to all interfaces
+docker restart qbittorrent
+sleep 10
+docker exec qbittorrent netstat -tlnp | grep "$GLUETUN_PORT"
+```
+
+**Verify port is externally reachable**:
+```bash
+VPN_IP=$(docker exec gluetun wget -qO- https://api.ipify.org)
+PORT=$(docker exec gluetun cat /tmp/gluetun/forwarded_port)
+RESULT=$(docker exec gluetun wget -qO- "http://portcheck.transmissionbt.com/$PORT" 2>/dev/null)
+echo "VPN IP: $VPN_IP, Port: $PORT, Open: $RESULT"
+# Result should be "1" (open), not "0" (closed)
+```
+
+### port-sync Not Working
+
+The `port-sync` sidecar automatically syncs Gluetun's forwarded port to qBittorrent.
+
+**Check port-sync logs**:
+```bash
+docker logs port-sync --since 10m
+```
+
+**Expected output** (working):
+```
+Attempting to retrieve port from Gluetun without authentication...
+Port number succesfully retrieved from Gluetun: 56749
+Port already set, exiting...
+```
+
+**Common errors and fixes**:
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `Failed to connect to localhost port 8000` | port-sync can't reach Gluetun API | `docker restart port-sync` |
+| `Failed to connect to localhost port 8080` | port-sync can't reach qBittorrent | `docker restart qbittorrent && docker restart port-sync` |
+| Container shows "Restarting" | Network namespace not attached | Restart entire stack |
+
+**Nuclear option** (restart everything in order):
+```bash
+cd /home/athires/aiTools/stacks/media-download
+docker compose restart
+# Or individually with proper ordering:
+docker restart gluetun && sleep 30 && docker restart qbittorrent && sleep 10 && docker restart port-sync
+```
+
 ### Port forwarding not working
 
 **Check Gluetun logs**:
@@ -253,13 +345,24 @@ docker logs gluetun | grep -i "port forward"
 
 **Expected output**:
 ```
-✔ [port forwarding] forwarded port XXXXX
+INFO [port forwarding] starting
+INFO [port forwarding] gateway external IPv4 address is X.X.X.X
+INFO [port forwarding] port forwarded is XXXXX
+INFO [firewall] setting allowed input port XXXXX through interface tun0...
 ```
 
 **If no port forwarded**:
 - Verify `VPN_PORT_FORWARDING=on` in environment
 - ProtonVPN free accounts don't support port forwarding (requires paid plan)
 - Try restarting Gluetun container
+
+**Stale port forwarding** (port reported but not working):
+ProtonVPN NAT-PMP port forwards can expire after extended sessions. The solution is to restart Gluetun:
+```bash
+docker restart gluetun
+# Wait 30-60 seconds for new port assignment
+docker exec gluetun cat /tmp/gluetun/forwarded_port
+```
 
 ### Downloads slow or not starting
 
@@ -271,6 +374,84 @@ docker exec gluetun wget -qO- https://api.ipify.org
 **Check qBittorrent is using forwarded port**:
 1. Get forwarded port: `docker logs gluetun | grep "forwarded port"`
 2. In qBittorrent Settings → Connection, set that port
+
+### Torrents Stuck on "Downloading Metadata" with 0 Peers
+
+**Root causes**:
+1. **Stale indexer data**: Seed counts in Radarr/Sonarr are cached from indexers, often hours/days old
+2. **Dead torrents**: Torrent was active when indexed but seeds have since left
+3. **Firewalled status**: Peers can't connect to you (see above)
+4. **Private tracker issues**: Tracker rejecting connections
+
+**Diagnosis**:
+1. In qBittorrent, right-click torrent → **Trackers** tab
+2. Check for errors: "timed out", "unreachable", "unregistered torrent"
+
+**Tracker error meanings**:
+| Error | Meaning |
+|-------|---------|
+| "timed out" / "unreachable" | Network/VPN routing issue or tracker down |
+| "host not found" | DNS resolution failing |
+| "unregistered torrent" | Torrent removed from private tracker |
+| "connection refused" | Tracker blocking VPN IP |
+
+**Fix DNS issues**:
+```bash
+# Test DNS from inside Gluetun
+docker exec gluetun nslookup tracker.opentrackr.org
+# Should resolve to an IP address
+```
+
+---
+
+## Maintenance
+
+### Automatic Weekly Restart (Recommended)
+
+VPN port forwarding can become stale after extended uptime. A weekly restart ensures fresh port assignments and prevents connectivity issues.
+
+**Included systemd timer files**:
+- `media-download-restart.service` - Restarts the stack
+- `media-download-restart.timer` - Triggers every Sunday at 4:00 AM
+
+**Installation**:
+```bash
+# Copy timer files to systemd
+sudo cp /home/athires/aiTools/stacks/media-download/media-download-restart.{service,timer} /etc/systemd/system/
+
+# Enable and start the timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now media-download-restart.timer
+
+# Verify timer is scheduled
+systemctl list-timers | grep media-download
+```
+
+**Timer management**:
+```bash
+# Check next scheduled run
+systemctl list-timers media-download-restart.timer
+
+# Manually trigger restart now
+sudo systemctl start media-download-restart.service
+
+# View restart logs
+journalctl -u media-download-restart.service
+
+# Disable automatic restarts
+sudo systemctl disable media-download-restart.timer
+```
+
+**Adjusting frequency**:
+```bash
+sudo systemctl edit media-download-restart.timer --full
+```
+
+Change `OnCalendar=` line:
+- **Weekly (default)**: `OnCalendar=Sun *-*-* 04:00:00`
+- **Daily**: `OnCalendar=*-*-* 04:00:00`
+- **Twice weekly**: `OnCalendar=Wed,Sun *-*-* 04:00:00`
+- **Every 3 days**: `OnCalendar=*-*-1,4,7,10,13,16,19,22,25,28,31 04:00:00`
 
 ---
 
@@ -285,6 +466,32 @@ docker exec gluetun wget -qO- https://api.ipify.org
 
 ---
 
+## Architecture Notes
+
+### Container Network Sharing
+
+All three containers share Gluetun's network namespace:
+- **gluetun**: VPN tunnel owner, exposes ports 8080 (qBittorrent WebUI) and 8000 (control API)
+- **qbittorrent**: `network_mode: service:gluetun` - all traffic routes through VPN
+- **port-sync**: `network_mode: service:gluetun` - accesses both via localhost
+
+**Why restarts sometimes fix issues**:
+When containers start, they attach to Gluetun's network namespace. If Gluetun restarts or the namespace becomes stale, dependent containers may lose connectivity to localhost services within the shared namespace. Restarting re-establishes the namespace attachment.
+
+### Port Forwarding Flow
+
+```
+ProtonVPN assigns port → Gluetun receives via NAT-PMP → Writes to /tmp/gluetun/forwarded_port
+                                                      → Updates iptables firewall rules
+                                                      → Exposes via API (:8000/v1/portforward)
+                                                                          ↓
+port-sync polls API every 5 min → Compares with qBittorrent → Updates qBittorrent if different
+                                                                          ↓
+qBittorrent binds to port on all interfaces → Peers can connect via VPN tunnel (10.2.0.2)
+```
+
+---
+
 ## Next Steps
 
 Once this stack is running:
@@ -296,5 +503,6 @@ Once this stack is running:
 
 ---
 
-**Stack Status**: ⏳ Pending Deployment
-**Last Updated**: 2025-12-07
+**Stack Status**: ✅ Production
+**Last Updated**: 2026-01-02
+**Known Issues**: Port forwarding may become stale after 2+ days uptime (mitigated by weekly restart timer)

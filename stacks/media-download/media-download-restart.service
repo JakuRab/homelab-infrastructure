@@ -1,0 +1,13 @@
+[Unit]
+Description=Restart media-download stack (Gluetun + qBittorrent + port-sync)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/athires/aiTools/stacks/media-download
+ExecStart=/usr/bin/docker compose restart
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target
