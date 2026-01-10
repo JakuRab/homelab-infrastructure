@@ -112,6 +112,30 @@ services:
       - "glance.name=FlareSolverr"
       - "glance.icon=sh:flaresolverr-light"
 
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    dns:
+      - 192.168.1.1
+      - 1.1.1.1
+    ports:
+      - "6767:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /mnt/nvme/services/media/config/bazarr:/config
+      - /mnt/media:/data
+    networks:
+      - caddy_net
+      - media_net
+    labels:
+      - "glance.name=Bazarr"
+      - "glance.icon=sh:bazarr-light"
+      - "glance.url=https://bazarr.rabalski.eu"
+
 networks:
   caddy_net:
     external: true

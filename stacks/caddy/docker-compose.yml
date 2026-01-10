@@ -29,6 +29,7 @@ services:
     networks:
       - caddy_net
     ports:
+      - "80:80/tcp"
       - "443:443/tcp"
       - "443:443/udp"
       - "8443:443/tcp"

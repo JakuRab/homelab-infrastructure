@@ -3,8 +3,7 @@ services:
     image: ghcr.io/manualdousuario/marreta:latest
     container_name: marreta
     restart: unless-stopped
-    ports:
-      - "80:80"
+    # No host port - accessed via Caddy reverse proxy on caddy_net
     environment:
       - SITE_URL=https://ram.rabalski.eu
       - SITE_NAME=Marreta

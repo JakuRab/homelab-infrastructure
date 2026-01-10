@@ -155,7 +155,7 @@ deck.rabalski.eu {
 ram.rabalski.eu {
   import gate
   encode zstd gzip
-  reverse_proxy http://192.168.1.11:80
+  reverse_proxy http://marreta:80
 }
 
 # ===========================
@@ -346,4 +346,13 @@ music.rabalski.eu {
     Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     X-Content-Type-Options "nosniff"
   }
+}
+
+# ===========================
+# Bazarr (Subtitle Manager)
+# ===========================
+bazarr.rabalski.eu {
+  import gate
+  encode zstd gzip
+  reverse_proxy http://192.168.1.11:6767
 }
