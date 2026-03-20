@@ -1,0 +1,167 @@
+{
+  "name": "SEO Crawl Daily Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Daily 07:00 Warsaw",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1bk7L-0NcCNYBQYnT9gwssxdpsAmaAzBJWKysfV7fW0A",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id"
+        },
+        "options": {
+          "range": "A:T"
+        }
+      },
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Read Crawl Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// Compare the last two rows from the Google Sheets crawl data\n// and build a prompt + Anthropic API request body.\n//\n// Output: { requestBody, project, previousDate, currentDate, changesCount }\n// ============================================================\n\nconst items = $input.all();\n\nif (items.length < 2) {\n  throw new Error(`Need at least 2 rows to compare, got ${items.length}`);\n}\n\n// Last two rows — most recent crawl results\nconst prev = items[items.length - 2].json;\nconst curr = items[items.length - 1].json;\n\n// All column headers present in the data\nconst headers = Object.keys(curr);\n\n// Metadata columns (not compared as metrics)\nconst metadataColumns = ['Project', 'URL', 'Audit Date', 'row_number'];\nconst metricColumns = headers.filter(h => !metadataColumns.includes(h));\n\n// ---- Compute diffs ----\nconst changes = [];\nfor (const col of metricColumns) {\n  const prevVal = prev[col];\n  const currVal = curr[col];\n  if (String(prevVal ?? '').trim() !== String(currVal ?? '').trim()) {\n    const entry = { column: col, previous: prevVal, current: currVal };\n    const pNum = parseFloat(prevVal);\n    const cNum = parseFloat(currVal);\n    if (!isNaN(pNum) && !isNaN(cNum) && prevVal !== '' && currVal !== '') {\n      entry.diff = cNum - pNum;\n      entry.pctChange = pNum !== 0\n        ? ((cNum - pNum) / pNum * 100).toFixed(1) + '%'\n        : 'N/A';\n    }\n    changes.push(entry);\n  }\n}\n\n// ---- Format data for Claude ----\nconst fmt = (row) => headers\n  .filter(h => h !== 'row_number')\n  .map(h => `  ${h}: ${row[h] ?? 'N/A'}`)\n  .join('\\n');\n\nconst changeSummary = changes.length > 0\n  ? changes.map(c => {\n      let line = `  ${c.column}: ${c.previous} \\u2192 ${c.current}`;\n      if (c.diff !== undefined) {\n        line += ` (${c.diff >= 0 ? '+' : ''}${c.diff}, ${c.pctChange})`;\n      }\n      return line;\n    }).join('\\n')\n  : '  No changes detected between the two crawls.';\n\nconst userPrompt = [\n  `Crawl comparison for ${curr['Project'] || 'tracked website'} (${curr['URL'] || ''}).`,\n  '',\n  `PREVIOUS CRAWL (${prev['Audit Date'] || 'unknown date'}):`,\n  fmt(prev),\n  '',\n  `LATEST CRAWL (${curr['Audit Date'] || 'unknown date'}):`,\n  fmt(curr),\n  '',\n  `CHANGES (${changes.length} fields):`,\n  changeSummary,\n  '',\n  'Produce the daily crawl report.'\n].join('\\n');\n\nconst systemPrompt = [\n  'You are an SEO monitoring analyst. You receive daily website crawl data',\n  'comparisons and produce concise, actionable Telegram reports.',\n  '',\n  'Report structure:',\n  '1. Header: \\\"\\ud83d\\udcca *SEO Crawl Report \\u2014 [project]*\\\" + date range',\n  '2. Status line: \\u2705 Stable / \\u26a0\\ufe0f Changes detected / \\ud83d\\udea8 Issues found',\n  '3. Key metrics with deltas: Audit Score, SEO Score, total Crawled URLs',\n  '4. URL status breakdown: success, errors, 404s, redirects, timeouts, forbidden',\n  '5. Crawl depth distribution shifts (only if notable)',\n  '6. One-line takeaway or action item if warranted',\n  '',\n  'Formatting:',\n  '- Telegram Markdown: *bold*, `code`',\n  '- Show direction: \\u2191 increase, \\u2193 decrease',\n  '- Under 2000 characters',\n  '- Be direct, no filler'\n].join('\\n');\n\nconst requestBody = {\n  model: 'claude-haiku-4-5-20251001',\n  max_tokens: 2048,\n  system: systemPrompt,\n  messages: [{ role: 'user', content: userPrompt }]\n};\n\nreturn [{\n  json: {\n    requestBody,\n    project: curr['Project'] || 'unknown',\n    previousDate: prev['Audit Date'] || 'unknown',\n    currentDate: curr['Audit Date'] || 'unknown',\n    changesCount: changes.length\n  }\n}];"
+      },
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "Compare Last Two Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "Claude Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "YOUR_CHAT_ID_HERE",
+        "text": "={{ $json.content[0].text }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "a1b2c3d4-0005-4000-8000-000000000005",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1180, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 07:00 Warsaw": {
+      "main": [
+        [
+          {
+            "node": "Read Crawl Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Crawl Data": {
+      "main": [
+        [
+          {
+            "node": "Compare Last Two Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare Last Two Rows": {
+      "main": [
+        [
+          {
+            "node": "Claude Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Analysis": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1
+}
