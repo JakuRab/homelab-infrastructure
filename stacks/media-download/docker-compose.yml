@@ -77,8 +77,6 @@ services:
       - QBT_PORT=8080
       - GTN_HOST=localhost
       - GTN_PORT=8000
-      - GTN_USERNAME=gluetun
-      - GTN_PASSWORD=${GLUETUN_API_KEY}
       - QBT_USERNAME=admin
       - QBT_PASSWORD=${QBITTORRENT_PASS}
       - INTERVAL=300
