@@ -79,7 +79,7 @@ services:
       - QBT_PASS=${QBITTORRENT_PASS}
       - GTN_HOST=localhost
       - GTN_PORT=8000
-      - GTN_API_KEY=${GLUETUN_API_KEY}
+      - GTN_APIKEY=${GLUETUN_API_KEY}
       - INTERVAL=300
       - LOG_LEVEL=info
     labels:
