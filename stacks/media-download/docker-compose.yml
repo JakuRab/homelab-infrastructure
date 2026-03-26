@@ -75,11 +75,12 @@ services:
       - TZ=${TZ}
       - QBT_HOST=localhost
       - QBT_PORT=8080
-      - QBT_USER=admin
-      - QBT_PASS=${QBITTORRENT_PASS}
       - GTN_HOST=localhost
       - GTN_PORT=8000
-      - GTN_APIKEY=${GLUETUN_API_KEY}
+      - GTN_USERNAME=gluetun
+      - GTN_PASSWORD=${GLUETUN_API_KEY}
+      - QBT_USERNAME=admin
+      - QBT_PASSWORD=${QBITTORRENT_PASS}
       - INTERVAL=300
       - LOG_LEVEL=info
     labels:
