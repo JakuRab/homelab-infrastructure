@@ -1,6 +1,6 @@
 services:
   gluetun:
-    image: qmcgaw/gluetun:v3.39.0
+    image: qmcgaw/gluetun:v3.39.1
     container_name: gluetun
     restart: unless-stopped
     cap_add:
@@ -21,6 +21,7 @@ services:
       - FIREWALL_VPN_INPUT_PORTS=${QBITTORRENT_PORT}
       - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
       - HTTP_CONTROL_SERVER_ADDRESS=:8000
+      - HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=
       - TZ=${TZ}
       - PUID=${PUID}
       - PGID=${PGID}
