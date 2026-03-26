@@ -77,7 +77,10 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        apk add --no-cache curl jq > /dev/null 2>&1
+        until apk add --no-cache curl jq; do
+          echo "apk install failed, retrying in 10s..."
+          sleep 10
+        done
         while true; do
           PORT=$$(curl -sf http://localhost:8000/v1/openvpn/portforwarded | jq -r '.port')
           if [ -n "$$PORT" ] && [ "$$PORT" != "null" ]; then
