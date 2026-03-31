@@ -306,7 +306,7 @@ echo "VPN IP: $VPN_IP, Port: $PORT, Open: $RESULT"
 
 ### port-sync Not Working
 
-The `port-sync` sidecar automatically syncs Gluetun's forwarded port to qBittorrent.
+The `port-sync` sidecar (custom Alpine script) automatically syncs Gluetun's forwarded port to qBittorrent.
 
 **Check port-sync logs**:
 ```bash
@@ -315,26 +315,60 @@ docker logs port-sync --since 10m
 
 **Expected output** (working):
 ```
-Attempting to retrieve port from Gluetun without authentication...
-Port number succesfully retrieved from Gluetun: 56749
-Port already set, exiting...
+fetch https://dl-cdn.alpinelinux.org/alpine/v3.xx/main/...
+OK: 14.1 MiB in 28 packages
+Port synced: 47921
+Port synced: 47921
 ```
+
+The `apk add curl jq` install happens on every container start (before the loop). The install requires the VPN to be up first — it retries automatically every 10 seconds until it succeeds.
 
 **Common errors and fixes**:
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Failed to connect to localhost port 8000` | port-sync can't reach Gluetun API | `docker restart port-sync` |
-| `Failed to connect to localhost port 8080` | port-sync can't reach qBittorrent | `docker restart qbittorrent && docker restart port-sync` |
-| Container shows "Restarting" | Network namespace not attached | Restart entire stack |
+| `/bin/sh: curl: not found` | apk install failed (VPN not up yet) | Wait — it retries automatically; or `docker restart port-sync` |
+| `curl: (7) Failed to connect to localhost port 8000` | Gluetun API not ready | `docker restart port-sync` after Gluetun is fully connected |
+| `curl: (7) Failed to connect to localhost port 8080` | qBittorrent not ready | `docker restart qbittorrent && sleep 10 && docker restart port-sync` |
+| Container shows "Restarting" | Script crashed | Check logs for error; restart stack |
+| `{"port":0}` from Gluetun | VPN connected but port not yet assigned | Wait 30-60s, port-sync will pick it up on next loop |
 
 **Nuclear option** (restart everything in order):
 ```bash
-cd /home/athires/aiTools/stacks/media-download
+cd /home/kuba/aiTools/stacks/media-download
 docker compose restart
 # Or individually with proper ordering:
 docker restart gluetun && sleep 30 && docker restart qbittorrent && sleep 10 && docker restart port-sync
 ```
+
+---
+
+### Gluetun Version Compatibility (IMPORTANT)
+
+**Pinned to `qmcgaw/gluetun:v3.39.0`** — do not casually upgrade. Here's why:
+
+| Version | ProtonVPN WireGuard | HTTP Auth | Port API Endpoint |
+|---------|--------------------|-----------|--------------------|
+| v3.38.0 | ❌ Not supported | None | `/v1/openvpn/portforwarded` |
+| **v3.39.0** (current) | ✅ Yes | None | `/v1/openvpn/portforwarded` |
+| v3.39.1+ | ✅ Yes | Optional/Mandatory | `/v1/portforward` |
+| v3.40.1+ | ✅ Yes | Mandatory | `/v1/portforward` |
+
+**Why v3.39.0:**
+- Earliest version supporting ProtonVPN WireGuard
+- No HTTP authentication on the control server
+- Uses `/v1/openvpn/portforwarded` endpoint (what our script calls)
+
+**If you upgrade Gluetun to v3.39.1+**, you must update port-sync too:
+- Change API endpoint in the script: `/v1/openvpn/portforwarded` → `/v1/portforward`
+- Either disable auth (`HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=/dev/null` does NOT work — Gluetun ignores it) or configure an API key in a `config.toml` and set `GTN_APIKEY` env var in port-sync
+
+**Symptoms of a version mismatch:**
+- `HTTP 400` from Gluetun API → wrong endpoint (upgrade happened)
+- `HTTP 401` from Gluetun API → auth required (using v3.39.1+ without key)
+- `{"port":0}` or empty response → wrong endpoint
+
+**Do NOT use `qmcgaw/gluetun:latest`** — it will silently upgrade on the next pull and break port forwarding.
 
 ### Port forwarding not working
 
@@ -483,12 +517,16 @@ When containers start, they attach to Gluetun's network namespace. If Gluetun re
 ```
 ProtonVPN assigns port → Gluetun receives via NAT-PMP → Writes to /tmp/gluetun/forwarded_port
                                                       → Updates iptables firewall rules
-                                                      → Exposes via API (:8000/v1/portforward)
+                                                      → Exposes via API (:8000/v1/openvpn/portforwarded)
                                                                           ↓
-port-sync polls API every 5 min → Compares with qBittorrent → Updates qBittorrent if different
+port-sync (Alpine script) polls every 5 min → Reads port → Logs into qBittorrent WebUI
+                                                         → Calls /api/v2/app/setPreferences
                                                                           ↓
 qBittorrent binds to port on all interfaces → Peers can connect via VPN tunnel (10.2.0.2)
 ```
+
+**Note**: The API endpoint `/v1/openvpn/portforwarded` is specific to **Gluetun v3.39.0**.
+In v3.39.1+ it changed to `/v1/portforward`. See version compatibility table above.
 
 ---
 
@@ -504,5 +542,6 @@ Once this stack is running:
 ---
 
 **Stack Status**: ✅ Production
-**Last Updated**: 2026-01-02
+**Last Updated**: 2026-03-31
+**Gluetun Version**: Pinned to `v3.39.0` (see version compatibility table before upgrading)
 **Known Issues**: Port forwarding may become stale after 2+ days uptime (mitigated by weekly restart timer)
