@@ -37,7 +37,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/radarr:/config
-      - /mnt/media:/data  # Single mount enables hard links
+      - /mnt/ald-ruhn:/data  # Single mount enables hard links
     networks:
       - caddy_net
       - media_net
@@ -61,7 +61,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/sonarr:/config
-      - /mnt/media:/data  # Single mount enables hard links
+      - /mnt/ald-ruhn:/data  # Single mount enables hard links
     networks:
       - caddy_net
       - media_net
@@ -85,7 +85,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/lidarr:/config
-      - /mnt/media:/data  # Single mount enables hard links
+      - /mnt/ald-ruhn:/data  # Single mount enables hard links
     networks:
       - caddy_net
       - media_net
@@ -127,7 +127,7 @@ services:
       - TZ=${TZ}
     volumes:
       - /mnt/nvme/services/media/config/bazarr:/config
-      - /mnt/media:/data
+      - /mnt/ald-ruhn:/data
     networks:
       - caddy_net
       - media_net
